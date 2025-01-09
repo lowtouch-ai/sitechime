@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { ChatBubbleLeftRightIcon, XMarkIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
+import { useChat } from '../../hooks/useChat';
+import { ChatMessage } from './ChatMessage';
+import { generateTheme } from './theme';
 
 interface ChatWidgetProps {
   apiKey: string;
@@ -21,12 +19,14 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   welcomeMessage = 'Hello! How can I help you today?',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: welcomeMessage },
-  ]);
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const theme = generateTheme(primaryColor);
+  
+  const { messages, isLoading, sendMessage } = useChat({
+    apiKey,
+    welcomeMessage,
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -39,43 +39,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
-
-    const userMessage = { role: 'user' as const, content: input };
-    setMessages((prev) => [...prev, userMessage]);
+    await sendMessage(input);
     setInput('');
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [...messages, userMessage].map(({ role, content }) => ({
-            role,
-            content,
-          })),
-        }),
-      });
-
-      const data = await response.json();
-      const assistantMessage = {
-        role: 'assistant' as const,
-        content: data.choices[0].message.content,
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error('Error:', error);
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   return (
@@ -88,11 +53,14 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={clsx(
-          'rounded-full p-4 shadow-lg transition-all duration-200',
-          'hover:shadow-xl',
-          isOpen ? 'bg-gray-600' : 'bg-primary'
+          'rounded-full p-4 shadow-lg transition-all duration-300',
+          'hover:shadow-xl transform hover:scale-105',
+          isOpen ? 'bg-gray-600 rotate-90' : 'bg-primary'
         )}
-        style={{ backgroundColor: isOpen ? undefined : primaryColor }}
+        style={{ 
+          backgroundColor: isOpen ? theme.primaryDark : theme.primary,
+          boxShadow: `0 4px 12px ${theme.primaryLight}40`
+        }}
       >
         {isOpen ? (
           <XMarkIcon className="h-6 w-6 text-white" />
@@ -103,41 +71,51 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="absolute bottom-16 right-0 w-96 rounded-lg bg-white shadow-xl">
-          {/* Chat Messages */}
-          <div className="h-96 overflow-y-auto p-4">
+        <div 
+          className="absolute bottom-16 right-0 w-96 h-[500px] rounded-lg shadow-2xl flex flex-col overflow-hidden"
+          style={{ 
+            backgroundColor: theme.background,
+            boxShadow: `0 8px 32px ${theme.primaryLight}40`,
+          }}
+        >
+          {/* Header */}
+          <div 
+            className="px-4 py-3 flex items-center"
+            style={{ 
+              backgroundColor: theme.primary,
+              color: theme.background
+            }}
+          >
+            <ChatBubbleLeftRightIcon className="h-5 w-5 mr-2" />
+            <span className="font-medium">Chat Assistant</span>
+          </div>
+
+          {/* Messages Container */}
+          <div 
+            className="flex-1 p-4 overflow-y-auto"
+            style={{ backgroundColor: theme.background }}
+          >
             {messages.map((message, index) => (
-              <div
+              <ChatMessage
                 key={index}
-                className={clsx(
-                  'mb-4 flex',
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                )}
-              >
-                <div
-                  className={clsx(
-                    'rounded-lg px-4 py-2 max-w-[80%]',
-                    message.role === 'user'
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-100 text-gray-800'
-                  )}
-                  style={{
-                    backgroundColor:
-                      message.role === 'user' ? primaryColor : undefined,
-                  }}
-                >
-                  {message.content}
-                </div>
-              </div>
+                message={message}
+                theme={theme}
+              />
             ))}
             {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-lg px-4 py-2">
-                  <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
-                  </div>
+              <div className="flex justify-center py-2">
+                <div className="flex space-x-2">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor: theme.primary,
+                        animation: 'bounce 1.4s infinite ease-in-out',
+                        animationDelay: `${i * 0.16}s`,
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
             )}
@@ -145,25 +123,42 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           </div>
 
           {/* Input Form */}
-          <form onSubmit={handleSubmit} className="border-t p-4">
-            <div className="flex space-x-2">
+          <form 
+            onSubmit={handleSubmit} 
+            className="p-4 border-t"
+            style={{ borderColor: theme.border }}
+          >
+            <div className="relative">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Type your message..."
-                className="flex-1 rounded-lg border px-4 py-2 focus:border-primary focus:outline-none"
+                className={clsx(
+                  "w-full p-3 pr-12 rounded-full",
+                  "border focus:outline-none focus:ring-2 focus:ring-opacity-50",
+                  "transition-all duration-200"
+                )}
+                style={{ 
+                  borderColor: theme.border,
+                  backgroundColor: theme.surface,
+                  color: theme.text,
+                  '--tw-ring-color': `${theme.primaryLight}`,
+                } as any}
                 disabled={isLoading}
               />
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
                 className={clsx(
-                  'rounded-lg px-4 py-2 text-white transition-colors',
-                  'disabled:bg-gray-300',
-                  'enabled:hover:bg-primary-dark'
+                  "absolute right-2 top-1/2 transform -translate-y-1/2",
+                  "p-2 rounded-full transition-all duration-200",
+                  "hover:bg-primary hover:text-white",
+                  "disabled:opacity-50 disabled:cursor-not-allowed"
                 )}
-                style={{ backgroundColor: primaryColor }}
+                style={{ 
+                  color: input.trim() ? theme.primary : theme.textSecondary
+                }}
               >
                 <PaperAirplaneIcon className="h-5 w-5" />
               </button>
