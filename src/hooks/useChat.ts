@@ -32,16 +32,24 @@ export const useChat = ({ apiKey, welcomeMessage }: UseChatProps) => {
     setIsLoading(true);
 
     try {
-      const response = await sendChatMessage(
-        [...messages, userMessage],
-        apiKey
-      );
-      
       const assistantMessage: Message = {
         role: 'assistant',
-        content: response,
+        content: '',
       };
       setMessages(prev => [...prev, assistantMessage]);
+
+      await sendChatMessage(
+        [...messages, userMessage],
+        apiKey,
+        (chunk) => {
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            lastMessage.content += chunk;
+            return newMessages;
+          });
+        }
+      );
     } catch (error) {
       console.error('Error:', error);
       setMessages(prev => [
