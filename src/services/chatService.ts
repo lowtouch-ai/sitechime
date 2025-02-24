@@ -28,34 +28,55 @@ export const sendChatMessage = async (
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
+  let buffer = '';
   let fullContent = '';
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    const chunk = decoder.decode(value);
-    const lines = chunk
-      .split('\n')
-      .filter(line => line.trim().startsWith('data: '))
-      .map(line => line.replace('data: ', '').trim())
-      .filter(line => line !== '[DONE]')
-      .map(line => {
+      // Decode the chunk and add it to the buffer
+      buffer += decoder.decode(value, { stream: true });
+
+      // Split the buffer into lines and process each complete line
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || ''; // Keep the last incomplete line in the buffer
+
+      for (const line of lines) {
+        if (line.trim() === '') continue;
+        if (!line.startsWith('data: ')) continue;
+        if (line.includes('[DONE]')) continue;
+
         try {
-          return JSON.parse(line);
-        } catch (_) {
-          return null;
+          const data = JSON.parse(line.replace('data: ', ''));
+          const content = data.choices[0]?.delta?.content || '';
+          if (content) {
+            fullContent += content;
+            onChunk?.(content);
+          }
+        } catch (e) {
+          console.warn('Failed to parse streaming response line:', e);
         }
-      })
-      .filter(Boolean);
-
-    for (const line of lines) {
-      const content = line.choices[0]?.delta?.content || '';
-      if (content) {
-        fullContent += content;
-        onChunk?.(content);
       }
     }
+
+    // Process any remaining data in the buffer
+    if (buffer) {
+      const line = buffer.replace('data: ', '');
+      try {
+        const data = JSON.parse(line);
+        const content = data.choices[0]?.delta?.content || '';
+        if (content) {
+          fullContent += content;
+          onChunk?.(content);
+        }
+      } catch (e) {
+        // Ignore parsing errors for incomplete chunks
+      }
+    }
+  } finally {
+    reader.releaseLock();
   }
 
   return fullContent;

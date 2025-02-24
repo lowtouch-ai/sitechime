@@ -28,24 +28,35 @@ export const useChat = ({ apiKey, welcomeMessage }: UseChatProps) => {
     if (!content.trim()) return;
 
     const userMessage: Message = { role: 'user', content };
+    
+    // Add user message
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
+      // Create a new assistant message with empty content
       const assistantMessage: Message = {
         role: 'assistant',
         content: '',
       };
+
+      // Add empty assistant message
       setMessages(prev => [...prev, assistantMessage]);
+
+      let accumulatedContent = '';
 
       await sendChatMessage(
         [...messages, userMessage],
         apiKey,
         (chunk) => {
+          accumulatedContent += chunk;
+          // Update the last message with accumulated content
           setMessages(prev => {
             const newMessages = [...prev];
             const lastMessage = newMessages[newMessages.length - 1];
-            lastMessage.content += chunk;
+            if (lastMessage.role === 'assistant') {
+              lastMessage.content = accumulatedContent;
+            }
             return newMessages;
           });
         }
