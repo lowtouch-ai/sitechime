@@ -1,28 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { 
-  ChatBubbleLeftRightIcon,
-  XMarkIcon,
-  ArrowsPointingOutIcon,
-  PlusIcon,
-  PaperAirplaneIcon
-} from '@heroicons/react/24/outline';
+import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import './ChatWidget.css';
 import { useChat } from '../../hooks/useChat';
 import { generateTheme } from './theme';
 import { fetchWidgetConfig } from '../../services/configService';
-import type { WidgetConfig } from '../../types/widgetConfig';
-
-export interface ChatWidgetProps {
-  apiKey: string;
-  configUrl: string;
-  position?: 'bottom-right' | 'bottom-left';
-  primaryColor?: string;
-  secondaryColor?: string;
-  welcomeMessage?: string;
-  botName?: string;
-  botAvatarUrl?: string;
-}
+import { ChatHeader } from './components/ChatHeader';
+import { ChatMessages } from './components/ChatMessages';
+import { ChatInput } from './components/ChatInput';
+import type { ChatWidgetProps } from './types';
 
 export const ChatWidget: React.FC<ChatWidgetProps> = ({
   apiKey,
@@ -159,7 +145,6 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
 
   return (
     <div style={widgetStyle}>
-      {/* Toggle Button */}
       <button 
         className="chat-toggle-button"
         onClick={() => setIsOpen(!isOpen)}
@@ -169,126 +154,39 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           <img 
             src={config.branding.logo.url} 
             alt="Chat"
-            style={{
-              width: '32px',
-              height: '32px',
-              objectFit: 'contain',
-            }}
+            style={{ width: '32px', height: '32px', objectFit: 'contain' }}
           />
         ) : (
           <ChatBubbleLeftRightIcon style={{ width: '32px', height: '32px' }} />
         )}
       </button>
 
-      {/* Chat Window */}
-      <div 
-        className={clsx(
-          'chat-window',
-          isOpen ? 'visible' : 'invisible'
-        )}
-        style={containerStyle}
-      >
-        {/* Header */}
-        <div className="chat-header" style={{
-          backgroundColor: theme.surface,
-          borderBottom: `1px solid ${theme.border}`,
-          color: theme.text,
-          minHeight: '60px',
-          flexShrink: 0,
-        }}>
-          <div className="chat-header-left">
-            {config?.branding.logo.url ? (
-              <img 
-                src={config.branding.logo.url}
-                alt={botName}
-                className="chat-avatar"
-                style={{
-                  width: '32px',
-                  height: '32px',
-                }}
-              />
-            ) : (
-              <div className="chat-avatar-placeholder">
-                {botName.charAt(0)}
-              </div>
-            )}
-            <span className="chat-bot-name">{botName}</span>
-          </div>
-          <div className="chat-header-actions">
-            <button onClick={clearMessages} className="header-button" title="New Chat">
-              <PlusIcon className="w-5 h-5" />
-            </button>
-            <button onClick={() => setIsExpanded(!isExpanded)} className="header-button" title="Toggle Fullscreen">
-              <ArrowsPointingOutIcon className="w-5 h-5" />
-            </button>
-            <button onClick={() => setIsOpen(false)} className="header-button" title="Close">
-              <XMarkIcon className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+      <div className={clsx('chat-window', isOpen ? 'visible' : 'invisible')} style={containerStyle}>
+        <ChatHeader
+          theme={theme}
+          botName={botName}
+          logoUrl={config?.branding.logo.url}
+          onClose={() => setIsOpen(false)}
+          onExpand={() => setIsExpanded(!isExpanded)}
+          onClear={clearMessages}
+        />
 
-        {/* Messages */}
-        <div className="chat-messages" ref={messagesRef} style={{
-          flex: 1,
-          overflowY: 'auto',
-          minHeight: 0,
-        }}>
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={clsx(
-                'chat-message',
-                message.role === 'user' ? 'chat-message-user' : 'chat-message-bot'
-              )}
-              style={message.role === 'user' ? messageStyle.userMessage : messageStyle.botMessage}
-            >
-              {message.content}
-            </div>
-          ))}
-          {isLoading && (
-            <div className="chat-message chat-message-bot typing-indicator">
-              <span className="dot"></span>
-              <span className="dot"></span>
-              <span className="dot"></span>
-            </div>
-          )}
-        </div>
+        <ChatMessages
+          messages={messages}
+          isLoading={isLoading}
+          messageStyle={messageStyle}
+          messagesRef={messagesRef}
+        />
 
-        {/* Input Area */}
-        <div className="chat-input-container" style={{
-          borderTop: `1px solid ${theme.border}`,
-          backgroundColor: theme.surface,
-          minHeight: '76px',
-          flexShrink: 0,
-        }}>
-          <textarea
-            className="chat-input"
-            placeholder="Type a message..."
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyPress}
-            rows={1}
-            style={{
-              backgroundColor: theme.background,
-              color: theme.text,
-              borderColor: theme.border,
-            }}
-          />
-          <button
-            className="chat-send-button"
-            onClick={handleSend}
-            disabled={!inputValue.trim() || isLoading}
-            style={{
-              backgroundColor: theme.primary,
-              color: theme.secondary,
-              opacity: (!inputValue.trim() || isLoading) ? 0.5 : 1,
-            }}
-          >
-            <PaperAirplaneIcon className="w-5 h-5" />
-          </button>
-        </div>
+        <ChatInput
+          theme={theme}
+          inputValue={inputValue}
+          isLoading={isLoading}
+          onInputChange={setInputValue}
+          onSend={handleSend}
+          onKeyPress={handleKeyPress}
+        />
 
-        {/* Powered By */}
         {config?.branding.poweredBy.visible && (
           <div style={{ 
             padding: '8px', 
