@@ -16,9 +16,13 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   messagesRef,
 }) => (
   <div className="chat-messages" ref={messagesRef} style={{
-    flex: 1,
+    flex: '1 1 auto',
     overflowY: 'auto',
-    minHeight: 0,
+    minHeight: '300px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    padding: '16px',
   }}>
     {messages.map((message, index) => (
       <div

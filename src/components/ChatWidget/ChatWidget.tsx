@@ -103,9 +103,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   };
 
   const containerStyle = {
-    width: `${config?.widget.dimensions.width || 350}px`,
-    height: isExpanded ? `${config?.widget.dimensions.height || 500}px` : `${config?.widget.dimensions.minHeight || 300}px`,
-    maxHeight: '80vh',
+    width: `${config?.widget.dimensions.width || 400}px`,
+    height: '100%',
     display: 'flex',
     flexDirection: 'column' as const,
     fontFamily: config?.branding.theme.fontFamily || 'inherit',
@@ -115,6 +114,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
     transition: 'all 0.3s ease-in-out',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
     borderRadius: '12px',
+    overflow: 'hidden',
   };
 
   const buttonStyle = {

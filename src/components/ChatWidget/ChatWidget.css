@@ -79,20 +79,20 @@
 
 .chat-window {
   position: absolute;
+  bottom: 80px;
   right: 0;
-  bottom: calc(100% + 1rem);
+  min-height: 500px;
+  height: calc(90vh - 100px);
   display: flex;
   flex-direction: column;
-  background: white;
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
 
-.chat-window.invisible {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+.chat-window.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .chat-header {
