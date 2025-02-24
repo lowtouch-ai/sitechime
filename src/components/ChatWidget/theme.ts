@@ -1,7 +1,5 @@
-export interface ThemeColors {
+export interface ChatTheme {
   primary: string;
-  primaryDark: string;
-  primaryLight: string;
   secondary: string;
   background: string;
   surface: string;
@@ -10,16 +8,23 @@ export interface ThemeColors {
   border: string;
 }
 
-export const generateTheme = (primaryColor: string, secondaryColor: string = '#ffffff'): ThemeColors => {
+export const generateTheme = (primaryColor: string, secondaryColor: string): ChatTheme => {
+  // Convert primary color to CSS variables for chatscope
+  document.documentElement.style.setProperty('--cs-theme-primary', primaryColor);
+  document.documentElement.style.setProperty('--cs-theme-secondary', secondaryColor);
+  document.documentElement.style.setProperty('--cs-theme-background', '#ffffff');
+  document.documentElement.style.setProperty('--cs-theme-background-secondary', '#f4f4f5');
+  document.documentElement.style.setProperty('--cs-theme-text', '#18181b');
+  document.documentElement.style.setProperty('--cs-theme-text-secondary', '#71717a');
+  document.documentElement.style.setProperty('--cs-theme-border', '#e4e4e7');
+
   return {
     primary: primaryColor,
-    primaryDark: primaryColor,
-    primaryLight: primaryColor,
     secondary: secondaryColor,
-    background: secondaryColor,
-    surface: secondaryColor,
-    text: '#1F2937',
-    textSecondary: '#6B7280',
-    border: '#E5E7EB',
+    background: '#ffffff',
+    surface: '#f4f4f5',
+    text: '#18181b',
+    textSecondary: '#71717a',
+    border: '#e4e4e7'
   };
 };

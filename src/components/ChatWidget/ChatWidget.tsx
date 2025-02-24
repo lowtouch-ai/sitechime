@@ -1,13 +1,30 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
-import clsx from 'clsx';
+import {
+  ArrowsPointingInIcon,
+  ArrowsPointingOutIcon,
+  XMarkIcon,
+  ChatBubbleLeftRightIcon,
+  TrashIcon
+} from '@heroicons/react/24/outline';
+import {
+  MainContainer,
+  ChatContainer,
+  MessageList,
+  Message,
+  MessageInput,
+  ConversationHeader,
+  Avatar,
+  Button,
+  InfoButton,
+  TypingIndicator,
+  MessageSeparator,
+  Status
+} from '@chatscope/chat-ui-kit-react';
+import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
 import './ChatWidget.css';
 import { useChat } from '../../hooks/useChat';
 import { generateTheme } from './theme';
 import { fetchWidgetConfig } from '../../services/configService';
-import { ChatHeader } from './components/ChatHeader';
-import { ChatMessages } from './components/ChatMessages';
-import { ChatInput } from './components/ChatInput';
 import type { ChatWidgetProps } from './types';
 
 export const ChatWidget: React.FC<ChatWidgetProps> = ({
@@ -24,8 +41,6 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [inputValue, setInputValue] = useState('');
-  const [messageCount, setMessageCount] = useState(0);
   const messagesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,7 +49,6 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
         const widgetConfig = await fetchWidgetConfig(configUrl);
         setConfig(widgetConfig);
         
-        // Apply initial configuration
         if (widgetConfig.widget.behavior.initialState === 'expanded') {
           setIsExpanded(true);
           setIsOpen(true);
@@ -56,37 +70,12 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
     maxRetries: config?.security.authentication.maxRetries,
   });
 
-  // Message buffer management
-  useEffect(() => {
-    if (config?.features.performance.messageBuffer && messages.length > config.features.performance.messageBuffer) {
-      clearMessages();
-    }
-  }, [messages, config?.features.performance.messageBuffer]);
-
-  // Auto-expand on new messages
-  useEffect(() => {
-    if (config?.widget.behavior.autoExpand && messageCount < messages.length) {
-      setIsExpanded(true);
-      setIsOpen(true);
-    }
-    setMessageCount(messages.length);
-  }, [messages.length, config?.widget.behavior.autoExpand]);
-
-  const handleSend = () => {
-    if (inputValue.trim()) {
-      sendMessage(inputValue);
-      setInputValue('');
-      
+  const handleSend = (message: string) => {
+    if (message.trim()) {
+      sendMessage(message);
       if (config?.widget.behavior.autoExpand) {
         setIsExpanded(true);
       }
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
     }
   };
 
@@ -105,16 +94,10 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   const containerStyle = {
     width: `${config?.widget.dimensions.width || 400}px`,
     height: '100%',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    fontFamily: config?.branding.theme.fontFamily || 'inherit',
     backgroundColor: theme.background,
-    color: theme.text,
-    borderColor: theme.border,
-    transition: 'all 0.3s ease-in-out',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
     borderRadius: '12px',
     overflow: 'hidden',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
   };
 
   const buttonStyle = {
@@ -132,23 +115,13 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
     padding: '0',
   };
 
-  const messageStyle = {
-    userMessage: {
-      backgroundColor: theme.primary,
-      color: theme.secondary,
-    },
-    botMessage: {
-      backgroundColor: theme.surface,
-      color: theme.text,
-    },
-  };
-
   return (
-    <div style={widgetStyle}>
+    <div style={widgetStyle} className={position}>
       <button 
         className="chat-toggle-button"
         onClick={() => setIsOpen(!isOpen)}
         style={buttonStyle}
+        aria-label="Toggle chat"
       >
         {config?.branding.logo.url ? (
           <img 
@@ -157,46 +130,81 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
             style={{ width: '32px', height: '32px', objectFit: 'contain' }}
           />
         ) : (
-          <ChatBubbleLeftRightIcon style={{ width: '32px', height: '32px' }} />
+          <ChatBubbleLeftRightIcon className="w-8 h-8" />
         )}
       </button>
 
-      <div className={clsx('chat-window', isOpen ? 'visible' : 'invisible')} style={containerStyle}>
-        <ChatHeader
-          theme={theme}
-          botName={botName}
-          logoUrl={config?.branding.logo.url}
-          onClose={() => setIsOpen(false)}
-          onExpand={() => setIsExpanded(!isExpanded)}
-          onClear={clearMessages}
-        />
+      <div className={`chat-window ${isOpen ? 'visible' : 'invisible'}`} style={containerStyle}>
+        <MainContainer responsive>
+          <ChatContainer>
+            <ConversationHeader>
+              <Avatar src={botAvatarUrl || undefined} name={botName} status={<Status status="available" />} />
+              <ConversationHeader.Content userName={botName} info="AI Assistant" />
+              <ConversationHeader.Actions>
+                <Button 
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  icon={isExpanded ? 
+                    <ArrowsPointingInIcon className="w-5 h-5" /> : 
+                    <ArrowsPointingOutIcon className="w-5 h-5" />
+                  }
+                />
+                <Button 
+                  onClick={clearMessages}
+                  icon={<TrashIcon className="w-5 h-5" />}
+                />
+                <Button 
+                  onClick={() => setIsOpen(false)}
+                  icon={<XMarkIcon className="w-5 h-5" />}
+                />
+              </ConversationHeader.Actions>
+            </ConversationHeader>
 
-        <ChatMessages
-          messages={messages}
-          isLoading={isLoading}
-          messageStyle={messageStyle}
-          messagesRef={messagesRef}
-        />
+            <MessageList 
+              ref={messagesRef}
+              typingIndicator={isLoading && <TypingIndicator content="AI is thinking" />}
+            >
+              {messages.length === 0 && (
+                <MessageSeparator content="Start of conversation" />
+              )}
+              
+              {messages.map((msg, index) => (
+                <Message
+                  key={index}
+                  model={{
+                    message: msg.content,
+                    sentTime: "now",
+                    sender: msg.role === 'user' ? "You" : botName,
+                    direction: msg.role === 'user' ? "outgoing" : "incoming",
+                    position: "single"
+                  }}
+                  avatarPosition={msg.role === 'user' ? undefined : "tl"}
+                  avatarSpacer={msg.role === 'user'}
+                >
+                  <Message.Header sender={msg.role === 'user' ? "You" : botName} />
+                  <Message.CustomContent>
+                    <div style={{ 
+                      whiteSpace: 'pre-wrap',
+                      textAlign: 'left'
+                    }}>
+                      {msg.content}
+                    </div>
+                  </Message.CustomContent>
+                </Message>
+              ))}
+            </MessageList>
 
-        <ChatInput
-          theme={theme}
-          inputValue={inputValue}
-          isLoading={isLoading}
-          onInputChange={setInputValue}
-          onSend={handleSend}
-          onKeyPress={handleKeyPress}
-        />
+            <MessageInput
+              placeholder="Type message here"
+              onSend={handleSend}
+              attachButton={false}
+              sendButton={true}
+              autoFocus={isOpen}
+            />
+          </ChatContainer>
+        </MainContainer>
 
         {config?.branding.poweredBy.visible && (
-          <div style={{ 
-            padding: '8px', 
-            textAlign: 'center', 
-            fontSize: '12px',
-            color: theme.textSecondary,
-            borderTop: `1px solid ${theme.border}`,
-            backgroundColor: theme.surface,
-            flexShrink: 0,
-          }}>
+          <div className="powered-by">
             {config.branding.poweredBy.text}
           </div>
         )}

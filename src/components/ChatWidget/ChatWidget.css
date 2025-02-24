@@ -249,3 +249,66 @@
   0%, 80%, 100% { transform: scale(0); }
   40% { transform: scale(1); }
 }
+
+/* Chatscope overrides */
+.cs-message__content {
+  white-space: pre-wrap !important;
+  text-align: left !important;
+}
+
+.cs-main-container {
+  border: none !important;
+  background: var(--cs-theme-background);
+}
+
+.cs-message-input {
+  padding: 16px;
+  border-top: 1px solid var(--cs-theme-border);
+}
+
+.cs-message-input__content-editor {
+  text-align: left !important;
+}
+
+.cs-message-input__content-editor-wrapper {
+  text-align: left !important;
+}
+
+.cs-message-input__content-editor-container {
+  text-align: left !important;
+}
+
+.cs-button {
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+}
+
+.cs-message--outgoing {
+  margin-left: auto;
+}
+
+.cs-message--incoming {
+  margin-right: auto;
+}
+
+.cs-message--outgoing .cs-message__content {
+  background: var(--cs-theme-primary);
+  color: var(--cs-theme-secondary);
+}
+
+.cs-message--incoming .cs-message__content {
+  background: var(--cs-theme-background-secondary);
+  color: var(--cs-theme-text);
+}
+
+.powered-by {
+  padding: 8px 16px;
+  text-align: left;
+  font-size: 12px;
+  color: var(--cs-theme-text-secondary);
+  border-top: 1px solid var(--cs-theme-border);
+  background: var(--cs-theme-background);
+  flex-shrink: 0;
+  opacity: 0.8;
+}

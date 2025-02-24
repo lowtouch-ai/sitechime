@@ -10,24 +10,3 @@ export interface ChatWidgetProps {
   botName?: string;
   botAvatarUrl?: string;
 }
-
-export interface ChatTheme {
-  primary: string;
-  secondary: string;
-  background: string;
-  surface: string;
-  text: string;
-  textSecondary: string;
-  border: string;
-}
-
-export interface MessageStyleProps {
-  userMessage: {
-    backgroundColor: string;
-    color: string;
-  };
-  botMessage: {
-    backgroundColor: string;
-    color: string;
-  };
-}
