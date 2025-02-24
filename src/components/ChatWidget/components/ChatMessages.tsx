@@ -15,15 +15,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   messageStyle,
   messagesRef,
 }) => (
-  <div className="chat-messages" ref={messagesRef} style={{
-    flex: '1 1 auto',
-    overflowY: 'auto',
-    minHeight: '300px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    padding: '16px',
-  }}>
+  <div className="chat-messages" ref={messagesRef}>
     {messages.map((message, index) => (
       <div
         key={index}
@@ -31,16 +23,19 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
           'chat-message',
           message.role === 'user' ? 'chat-message-user' : 'chat-message-bot'
         )}
-        style={message.role === 'user' ? messageStyle.userMessage : messageStyle.botMessage}
+        style={{
+          ...message.role === 'user' ? messageStyle.userMessage : messageStyle.botMessage,
+          whiteSpace: 'pre-wrap'
+        }}
       >
         {message.content}
       </div>
     ))}
     {isLoading && (
       <div className="chat-message chat-message-bot typing-indicator">
-        <span className="dot"></span>
-        <span className="dot"></span>
-        <span className="dot"></span>
+        <div className="dot"></div>
+        <div className="dot"></div>
+        <div className="dot"></div>
       </div>
     )}
   </div>
