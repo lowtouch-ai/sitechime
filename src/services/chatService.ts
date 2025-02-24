@@ -55,8 +55,8 @@ export const sendChatMessage = async (
             fullContent += content;
             onChunk?.(content);
           }
-        } catch (e) {
-          console.warn('Failed to parse streaming response line:', e);
+        } catch {
+          console.warn('Failed to parse streaming response line:');
         }
       }
     }
@@ -71,7 +71,7 @@ export const sendChatMessage = async (
           fullContent += content;
           onChunk?.(content);
         }
-      } catch (e) {
+      } catch {
         // Ignore parsing errors for incomplete chunks
       }
     }
