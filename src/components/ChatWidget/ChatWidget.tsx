@@ -12,6 +12,8 @@ import {
   MessageInput,
   ConversationHeader,
   Avatar,
+  TypingIndicator,
+  MessageSeparator,
 } from '@chatscope/chat-ui-kit-react';
 
 interface ChatWidgetProps {
@@ -19,6 +21,8 @@ interface ChatWidgetProps {
   position?: 'bottom-right' | 'bottom-left';
   primaryColor?: string;
   welcomeMessage?: string;
+  botName?: string;
+  botAvatarUrl?: string;
 }
 
 export const ChatWidget: React.FC<ChatWidgetProps> = ({
@@ -26,8 +30,11 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   position = 'bottom-right',
   primaryColor = '#0066cc',
   welcomeMessage = 'Hello! How can I help you today?',
+  botName = 'AI Assistant',
+  botAvatarUrl = '',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const theme = generateTheme(primaryColor);
   
   const { messages, isLoading, sendMessage } = useChat({
@@ -38,6 +45,14 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
   const handleSend = async (message: string) => {
     await sendMessage(message);
   };
+
+  // Get current date for the message separator
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 
   return (
     <div className={clsx(
@@ -68,48 +83,88 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
       {/* Chat Window */}
       {isOpen && (
         <div 
-          className="absolute bottom-16 right-0 w-96 h-[500px] rounded-lg shadow-2xl overflow-hidden"
+          className={clsx(
+            "absolute transition-all duration-300 ease-in-out",
+            "rounded-lg shadow-2xl overflow-hidden",
+            isExpanded ? "w-[800px] h-[80vh]" : "w-96 h-[500px]",
+            position === 'bottom-right' ? 'right-0' : 'left-0',
+            "bottom-16"
+          )}
           style={{ 
             backgroundColor: theme.background,
             boxShadow: `0 8px 32px ${theme.primaryLight}40`,
           }}
         >
-          <MainContainer>
+          <MainContainer responsive>
             <ChatContainer>
               <ConversationHeader>
-                <Avatar src="" name="AI" />
-                <ConversationHeader.Content userName="Chat Assistant" />
+                <ConversationHeader.Back />
+                <Avatar src={botAvatarUrl || `https://api.dicebear.com/6.x/bottts/svg?seed=${botName}`} name={botName} />
+                <ConversationHeader.Content 
+                  userName={botName}
+                  info="Always here to help"
+                />
+                <ConversationHeader.Actions>
+                  <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      {isExpanded ? (
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 9l6 6m0-6l-6 6m12-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      ) : (
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                        />
+                      )}
+                    </svg>
+                  </button>
+                </ConversationHeader.Actions>
               </ConversationHeader>
-              <MessageList>
+              <MessageList typingIndicator={isLoading ? <TypingIndicator content="AI is thinking" /> : null}>
+                <MessageSeparator content={today} />
                 {messages.map((msg, index) => (
                   <Message
                     key={index}
                     model={{
                       message: msg.content,
                       sentTime: "now",
-                      sender: msg.role === 'user' ? "You" : "Assistant",
+                      sender: msg.role === 'user' ? "You" : botName,
                       direction: msg.role === 'user' ? "outgoing" : "incoming",
-                      position: "single"
+                      position: "single",
                     }}
-                  />
+                  >
+                    {msg.role !== 'user' && (
+                      <Message.Header sender={botName} />
+                    )}
+                    <Message.CustomContent>
+                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                    </Message.CustomContent>
+                  </Message>
                 ))}
-                {isLoading && (
-                  <Message
-                    model={{
-                      message: "...",
-                      sentTime: "now",
-                      sender: "Assistant",
-                      direction: "incoming",
-                      position: "single"
-                    }}
-                  />
-                )}
               </MessageList>
               <MessageInput
-                placeholder="Type message here"
+                placeholder="Type your message here..."
                 onSend={handleSend}
                 disabled={isLoading}
                 attachButton={false}
+                autoFocus
+                style={{
+                  boxShadow: '0 -1px 4px rgba(0,0,0,0.05)',
+                }}
               />
             </ChatContainer>
           </MainContainer>
