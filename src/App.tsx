@@ -13,6 +13,7 @@ function App() {
        */}
       <ChatWidget 
         apiKey="your-openai-api-key"
+        configUrl="/widget-config.json"
         position="bottom-right"
         primaryColor="#0066cc"
         welcomeMessage="👋 Hi there! How can I assist you today?"

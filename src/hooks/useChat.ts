@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { sendChatMessage } from '../services/chatService';
 
-export interface Message {
+interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
@@ -9,74 +9,79 @@ export interface Message {
 interface UseChatProps {
   apiKey: string;
   welcomeMessage: string;
+  endpoint?: string;
+  timeoutMs?: number;
+  maxRetries?: number;
 }
 
-export const useChat = ({ apiKey, welcomeMessage }: UseChatProps) => {
-  const [messages, setMessages] = useState<Message[]>(() => {
-    const savedMessages = localStorage.getItem('chat-messages');
-    return savedMessages 
-      ? JSON.parse(savedMessages) 
-      : [{ role: 'assistant', content: welcomeMessage }];
-  });
+export const useChat = ({ 
+  apiKey, 
+  welcomeMessage,
+  endpoint,
+  timeoutMs = 30000,
+  maxRetries = 3
+}: UseChatProps) => {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Initialize with welcome message
   useEffect(() => {
-    localStorage.setItem('chat-messages', JSON.stringify(messages));
-  }, [messages]);
+    if (welcomeMessage && messages.length === 0) {
+      setMessages([{ role: 'assistant', content: welcomeMessage }]);
+    }
+  }, [welcomeMessage]);
 
   const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim()) return;
-
     const userMessage: Message = { role: 'user', content };
-    
-    // Add user message
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      // Create a new assistant message with empty content
-      const assistantMessage: Message = {
-        role: 'assistant',
-        content: '',
-      };
-
-      // Add empty assistant message
-      setMessages(prev => [...prev, assistantMessage]);
-
-      let accumulatedContent = '';
-
-      await sendChatMessage(
-        [...messages, userMessage],
+      const response = await sendChatMessage(
+        messages.concat(userMessage),
         apiKey,
-        (chunk) => {
-          accumulatedContent += chunk;
-          // Update the last message with accumulated content
+        (chunk: string) => {
           setMessages(prev => {
-            const newMessages = [...prev];
-            const lastMessage = newMessages[newMessages.length - 1];
-            if (lastMessage.role === 'assistant') {
-              lastMessage.content = accumulatedContent;
+            const lastMessage = prev[prev.length - 1];
+            if (lastMessage && lastMessage.role === 'assistant') {
+              return [
+                ...prev.slice(0, -1),
+                { ...lastMessage, content: lastMessage.content + chunk }
+              ];
             }
-            return newMessages;
+            return [...prev, { role: 'assistant', content: chunk }];
           });
+        },
+        {
+          endpoint,
+          timeoutMs,
+          maxRetries,
         }
       );
+
+      setMessages(prev => {
+        const lastMessage = prev[prev.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant') {
+          return prev;
+        }
+        return [...prev, { role: 'assistant', content: response }];
+      });
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error sending message:', error);
       setMessages(prev => [
         ...prev,
         { 
           role: 'assistant', 
-          content: 'Sorry, I encountered an error. Please try again.' 
-        },
+          content: 'I apologize, but I encountered an error processing your request. Please try again.'
+        }
       ]);
     } finally {
       setIsLoading(false);
     }
-  }, [messages, apiKey]);
+  }, [messages, apiKey, endpoint, timeoutMs, maxRetries]);
 
   const clearMessages = useCallback(() => {
-    setMessages([{ role: 'assistant', content: welcomeMessage }]);
+    setMessages(welcomeMessage ? [{ role: 'assistant', content: welcomeMessage }] : []);
   }, [welcomeMessage]);
 
   return {

@@ -4,80 +4,92 @@ interface ChatCompletionRequest {
   stream?: boolean;
 }
 
+interface ChatServiceConfig {
+  endpoint?: string;
+  timeoutMs?: number;
+  maxRetries?: number;
+}
+
+const DEFAULT_CONFIG: ChatServiceConfig = {
+  endpoint: 'https://api.openai.com/v1/chat/completions',
+  timeoutMs: 30000,
+  maxRetries: 3,
+};
+
 export const sendChatMessage = async (
   messages: Array<{ role: string; content: string }>,
   apiKey: string,
-  onChunk?: (chunk: string) => void
+  onChunk?: (chunk: string) => void,
+  config: ChatServiceConfig = {}
 ): Promise<string> => {
-  const response = await fetch('http://localhost:1234/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-3.5-turbo',
-      messages,
-      stream: true,
-    } as ChatCompletionRequest),
-  });
+  const mergedConfig = { ...DEFAULT_CONFIG, ...config };
+  let retryCount = 0;
 
-  if (!response.body) {
-    throw new Error('No response body');
-  }
+  const makeRequest = async (): Promise<string> => {
+    try {
+      const response = await fetch(mergedConfig.endpoint!, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages,
+          stream: Boolean(onChunk),
+        } as ChatCompletionRequest),
+        signal: AbortSignal.timeout(mergedConfig.timeoutMs!),
+      });
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
-  let fullContent = '';
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      if (onChunk) {
+        const reader = response.body!.getReader();
+        const decoder = new TextDecoder();
+        let content = '';
 
-      // Decode the chunk and add it to the buffer
-      buffer += decoder.decode(value, { stream: true });
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-      // Split the buffer into lines and process each complete line
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || ''; // Keep the last incomplete line in the buffer
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
 
-      for (const line of lines) {
-        if (line.trim() === '') continue;
-        if (!line.startsWith('data: ')) continue;
-        if (line.includes('[DONE]')) continue;
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
 
-        try {
-          const data = JSON.parse(line.replace('data: ', ''));
-          const content = data.choices[0]?.delta?.content || '';
-          if (content) {
-            fullContent += content;
-            onChunk?.(content);
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices[0]?.delta?.content || '';
+                if (content) {
+                  onChunk(content);
+                }
+              } catch (e) {
+                console.error('Error parsing chunk:', e);
+              }
+            }
           }
-        } catch {
-          console.warn('Failed to parse streaming response line:');
         }
-      }
-    }
 
-    // Process any remaining data in the buffer
-    if (buffer) {
-      const line = buffer.replace('data: ', '');
-      try {
-        const data = JSON.parse(line);
-        const content = data.choices[0]?.delta?.content || '';
-        if (content) {
-          fullContent += content;
-          onChunk?.(content);
-        }
-      } catch {
-        // Ignore parsing errors for incomplete chunks
+        return content;
+      } else {
+        const data = await response.json();
+        return data.choices[0]?.message?.content || '';
       }
+    } catch (error) {
+      if (retryCount < mergedConfig.maxRetries! && error instanceof Error) {
+        retryCount++;
+        const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return makeRequest();
+      }
+      throw error;
     }
-  } finally {
-    reader.releaseLock();
-  }
+  };
 
-  return fullContent;
+  return makeRequest();
 };
