@@ -118,7 +118,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     sendMessage: handleSend,
     clearMessages,
     theme,
-    botName: config?.branding.botName || botName,
+    botName: botName,
     botAvatarUrl: config?.branding.logo.url || botAvatarUrl,
     widgetPosition: position,
     inputValue,

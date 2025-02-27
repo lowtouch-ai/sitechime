@@ -42,7 +42,7 @@ export const ChatInput: React.FC = () => {
             maxHeight: '150px',
             backgroundColor: theme.surface,
             color: theme.text,
-            focusRing: theme.primary
+            outlineColor: theme.primary
           }}
           placeholder="Type your message..."
           value={inputValue}
