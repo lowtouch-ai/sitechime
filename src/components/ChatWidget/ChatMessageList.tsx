@@ -64,6 +64,9 @@ export const ChatMessageList: React.FC = () => {
         const { regularContent, thinkingContent, inProgressThinking } = processMessageContent(msg.content);
         const isThinkingExpanded = thinkingExpanded[index] || false;
         
+        // Skip rendering thinking section if content is empty
+        const hasThinkingContent = Boolean(thinkingContent && thinkingContent.trim()) || inProgressThinking;
+        
         return (
           <div
             key={index}
@@ -101,8 +104,8 @@ export const ChatMessageList: React.FC = () => {
               </div>
             )}
             
-            {/* Render thinking section before regular content if thinking content exists */}
-            {(thinkingContent || inProgressThinking) && msg.role === 'assistant' && (
+            {/* Render thinking section before regular content if thinking content exists and is not empty */}
+            {hasThinkingContent && msg.role === 'assistant' && (
               <div 
                 className="thinking-section mb-2 pb-2 border-b" 
                 style={{ 
