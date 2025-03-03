@@ -159,3 +159,36 @@
 .message-appear {
   animation: fadeIn 0.3s ease-out;
 }
+
+/* Thinking section styles */
+.thinking-section {
+  margin-top: 8px;
+  border-top-width: 1px;
+  padding-top: 6px;
+}
+
+.thinking-section button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+  text-align: left;
+}
+
+.thinking-section button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.thinking-content {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  padding: 6px 8px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  font-family: monospace;
+  background-color: rgba(0, 0, 0, 0.03);
+}

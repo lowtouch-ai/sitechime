@@ -15,6 +15,9 @@ interface ChatContextProps {
   botAvatarUrl?: string;
 }
 
+// Map to track expanded state of thinking sections by message index
+type ThinkingExpandedMap = Record<number, boolean>;
+
 interface ChatContextValue {
   config: WidgetConfig | null;
   error: string | null;
@@ -40,6 +43,8 @@ interface ChatContextValue {
   widgetPosition: 'bottom-right' | 'bottom-left';
   inputValue: string;
   setInputValue: (value: string) => void;
+  thinkingExpanded: ThinkingExpandedMap;
+  toggleThinkingExpanded: (messageIndex: number) => void;
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);
@@ -60,6 +65,8 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  // Initialize thinking sections to be expanded by default
+  const [thinkingExpanded, setThinkingExpanded] = useState<ThinkingExpandedMap>({});
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -88,6 +95,27 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     maxRetries: config?.security.authentication.maxRetries,
   });
 
+  // When messages change, automatically set any new messages with thinking content to expanded
+  useEffect(() => {
+    const newThinkingExpanded = { ...thinkingExpanded };
+    let updated = false;
+    
+    messages.forEach((msg, index) => {
+      // If this message has thinking content and doesn't have an expanded state yet,
+      // set it to expanded by default
+      if (msg.role === 'assistant' && 
+          msg.content.includes('<think>') && 
+          thinkingExpanded[index] === undefined) {
+        newThinkingExpanded[index] = true;
+        updated = true;
+      }
+    });
+    
+    if (updated) {
+      setThinkingExpanded(newThinkingExpanded);
+    }
+  }, [messages]);
+
   const handleSend = (message: string) => {
     if (message.trim()) {
       sendMessage(message);
@@ -96,6 +124,14 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
         setIsExpanded(true);
       }
     }
+  };
+
+  // Toggle expanded state for thinking sections
+  const toggleThinkingExpanded = (messageIndex: number) => {
+    setThinkingExpanded(prev => ({
+      ...prev,
+      [messageIndex]: !prev[messageIndex]
+    }));
   };
 
   const theme = {
@@ -124,7 +160,9 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     botAvatarUrl: config?.branding.logo.url || botAvatarUrl,
     widgetPosition: position,
     inputValue,
-    setInputValue
+    setInputValue,
+    thinkingExpanded,
+    toggleThinkingExpanded
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

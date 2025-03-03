@@ -14,6 +14,15 @@ interface UseChatProps {
   maxRetries?: number;
 }
 
+// FOR TESTING: Add an example message with thinking tokens
+const EXAMPLE_THINKING_MESSAGE = `I'll help you solve this problem. <think>
+First, let me work through this step by step:
+1. We need to identify the core issue
+2. Research possible solutions
+3. Evaluate the best approach
+4. Implement the solution
+</think> Based on my analysis, here's what you should do.`;
+
 export const useChat = ({ 
   apiKey, 
   welcomeMessage,
@@ -25,10 +34,16 @@ export const useChat = ({
   const [isLoading, setIsLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Initialize with welcome message
+  // Initialize with welcome message and test thinking message
   useEffect(() => {
-    if (welcomeMessage && messages.length === 0) {
-      setMessages([{ role: 'assistant', content: welcomeMessage }]);
+    if (messages.length === 0) {
+      const initialMessages = [
+        { role: 'assistant', content: welcomeMessage },
+        // Add an example message with thinking content for testing
+        { role: 'user', content: 'Can you help me solve this problem?' },
+        { role: 'assistant', content: EXAMPLE_THINKING_MESSAGE }
+      ];
+      setMessages(initialMessages);
     }
   }, [welcomeMessage]);
 

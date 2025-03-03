@@ -55,6 +55,7 @@ export const sendChatMessage = async (
         const reader = response.body!.getReader();
         const decoder = new TextDecoder();
         let content = '';
+        let inThinking = false;
 
         try {
           while (true) {
@@ -71,9 +72,11 @@ export const sendChatMessage = async (
 
                 try {
                   const parsed = JSON.parse(data);
-                  const content = parsed.choices[0]?.delta?.content || '';
-                  if (content) {
-                    onChunk(content);
+                  const contentChunk = parsed.choices[0]?.delta?.content || '';
+                  if (contentChunk) {
+                    // Send content chunk directly to keep streaming behavior
+                    onChunk(contentChunk);
+                    content += contentChunk;
                   }
                 } catch (e) {
                   console.error('Error parsing chunk:', e);
