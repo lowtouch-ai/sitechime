@@ -122,11 +122,14 @@
 .message-user {
   align-self: flex-end;
   border-bottom-right-radius: 0.25rem;
+  margin-left: auto;
 }
 
 .message-assistant {
   align-self: flex-start;
   border-bottom-left-radius: 0.25rem;
+  margin-right: auto;
+  margin-left: 0;
 }
 
 .message-header {
