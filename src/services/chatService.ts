@@ -8,6 +8,7 @@ interface ChatServiceConfig {
   endpoint?: string;
   timeoutMs?: number;
   maxRetries?: number;
+  signal?: AbortSignal;
 }
 
 const DEFAULT_CONFIG: ChatServiceConfig = {
@@ -27,6 +28,11 @@ export const sendChatMessage = async (
 
   const makeRequest = async (): Promise<string> => {
     try {
+      const timeoutSignal = AbortSignal.timeout(mergedConfig.timeoutMs!);
+      const signal = mergedConfig.signal 
+        ? AbortSignal.any([mergedConfig.signal, timeoutSignal])
+        : timeoutSignal;
+
       const response = await fetch(mergedConfig.endpoint!, {
         method: 'POST',
         headers: {
@@ -34,11 +40,11 @@ export const sendChatMessage = async (
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
+          model: 'deepscaler:1.5b-preview-q4_K_M',
           messages,
           stream: Boolean(onChunk),
         } as ChatCompletionRequest),
-        signal: AbortSignal.timeout(mergedConfig.timeoutMs!),
+        signal,
       });
 
       if (!response.ok) {
@@ -50,28 +56,35 @@ export const sendChatMessage = async (
         const decoder = new TextDecoder();
         let content = '';
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
 
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') continue;
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') continue;
 
-              try {
-                const parsed = JSON.parse(data);
-                const content = parsed.choices[0]?.delta?.content || '';
-                if (content) {
-                  onChunk(content);
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed.choices[0]?.delta?.content || '';
+                  if (content) {
+                    onChunk(content);
+                  }
+                } catch (e) {
+                  console.error('Error parsing chunk:', e);
                 }
-              } catch (e) {
-                console.error('Error parsing chunk:', e);
               }
             }
+          }
+        } catch (error) {
+          if (error.name === 'AbortError') {
+            reader.cancel();
+            throw error;
           }
         }
 
@@ -81,6 +94,9 @@ export const sendChatMessage = async (
         return data.choices[0]?.message?.content || '';
       }
     } catch (error) {
+      if (error.name === 'AbortError') {
+        throw error;
+      }
       if (retryCount < mergedConfig.maxRetries! && error instanceof Error) {
         retryCount++;
         const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff

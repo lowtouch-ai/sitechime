@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { sendChatMessage } from '../services/chatService';
 
 interface Message {
@@ -23,6 +23,7 @@ export const useChat = ({
 }: UseChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Initialize with welcome message
   useEffect(() => {
@@ -35,6 +36,9 @@ export const useChat = ({
     const userMessage: Message = { role: 'user', content };
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
+
+    // Create new AbortController for this request
+    abortControllerRef.current = new AbortController();
 
     try {
       const response = await sendChatMessage(
@@ -56,6 +60,7 @@ export const useChat = ({
           endpoint,
           timeoutMs,
           maxRetries,
+          signal: abortControllerRef.current.signal,
         }
       );
 
@@ -67,20 +72,29 @@ export const useChat = ({
         return [...prev, { role: 'assistant', content: response }];
       });
     } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages(prev => [
-        ...prev,
-        { 
-          role: 'assistant', 
-          content: 'I apologize, but I encountered an error processing your request. Please try again.'
-        }
-      ]);
+      if (error.name !== 'AbortError') {
+        console.error('Error sending message:', error);
+        setMessages(prev => [
+          ...prev,
+          { 
+            role: 'assistant', 
+            content: 'I apologize, but I encountered an error processing your request. Please try again.'
+          }
+        ]);
+      }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   }, [messages, apiKey, endpoint, timeoutMs, maxRetries]);
 
   const clearMessages = useCallback(() => {
+    // Abort any ongoing streaming response
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsLoading(false);
     setMessages(welcomeMessage ? [{ role: 'assistant', content: welcomeMessage }] : []);
   }, [welcomeMessage]);
 
