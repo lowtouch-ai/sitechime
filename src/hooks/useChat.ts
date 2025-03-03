@@ -71,7 +71,8 @@ export const useChat = ({
         }
         return [...prev, { role: 'assistant', content: response }];
       });
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       if (error.name !== 'AbortError') {
         console.error('Error sending message:', error);
         setMessages(prev => [
@@ -98,10 +99,19 @@ export const useChat = ({
     setMessages(welcomeMessage ? [{ role: 'assistant', content: welcomeMessage }] : []);
   }, [welcomeMessage]);
 
+  const abortStreaming = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsLoading(false);
+    }
+  }, []);
+
   return {
     messages,
     isLoading,
     sendMessage,
     clearMessages,
+    abortStreaming,
   };
 };

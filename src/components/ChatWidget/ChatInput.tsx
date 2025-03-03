@@ -1,12 +1,17 @@
 import React, { useRef, KeyboardEvent } from 'react';
-import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
+import { PaperAirplaneIcon, StopIcon } from '@heroicons/react/24/solid';
 import { useChatContext } from './ChatContext';
 
 export const ChatInput: React.FC = () => {
-  const { sendMessage, inputValue, setInputValue, theme } = useChatContext();
+  const { sendMessage, inputValue, setInputValue, theme, isLoading, abortStreaming } = useChatContext();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSend = () => {
+    if (isLoading) {
+      abortStreaming(); // Just abort the stream without clearing messages
+      return;
+    }
+
     if (inputValue.trim()) {
       sendMessage(inputValue);
       if (textareaRef.current) {
@@ -50,18 +55,22 @@ export const ChatInput: React.FC = () => {
           onInput={handleTextareaInput}
           onKeyDown={handleKeyDown}
           rows={1}
+          disabled={isLoading}
         />
         <button
-          className="absolute right-2 p-2 rounded-full disabled:opacity-40"
+          className="absolute right-2 p-2 rounded-full hover:opacity-80 transition-all"
           style={{ 
-            backgroundColor: inputValue.trim() ? theme.primary : 'transparent',
-            color: inputValue.trim() ? theme.secondary : theme.text
+            backgroundColor: isLoading || inputValue.trim() ? theme.primary : 'transparent',
+            color: isLoading || inputValue.trim() ? theme.secondary : theme.text
           }}
           onClick={handleSend}
-          disabled={!inputValue.trim()}
-          aria-label="Send message"
+          aria-label={isLoading ? "Stop generating" : "Send message"}
         >
-          <PaperAirplaneIcon className="h-5 w-5" />
+          {isLoading ? (
+            <StopIcon className="h-5 w-5" />
+          ) : (
+            <PaperAirplaneIcon className="h-5 w-5" />
+          )}
         </button>
       </div>
     </div>

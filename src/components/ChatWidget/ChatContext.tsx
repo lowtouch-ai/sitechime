@@ -26,6 +26,7 @@ interface ChatContextValue {
   isLoading: boolean;
   sendMessage: (message: string) => void;
   clearMessages: () => void;
+  abortStreaming: () => void;
   theme: {
     primary: string;
     secondary: string;
@@ -79,7 +80,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     loadConfig();
   }, [configUrl]);
 
-  const { messages, isLoading, sendMessage, clearMessages } = useChat({
+  const { messages, isLoading, sendMessage, clearMessages, abortStreaming } = useChat({
     apiKey,
     welcomeMessage: config?.branding.poweredBy.text || welcomeMessage,
     endpoint: config?.security.api.endpoint,
@@ -117,6 +118,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     isLoading,
     sendMessage: handleSend,
     clearMessages,
+    abortStreaming,
     theme,
     botName: botName,
     botAvatarUrl: config?.branding.logo.url || botAvatarUrl,
