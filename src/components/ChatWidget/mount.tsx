@@ -1,5 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import { ChatWidget } from './ChatWidget';
+import '../../../src/index.css';
+import './ChatWidget.css';
 
 export interface ChatWidgetConfig {
   apiKey: string;

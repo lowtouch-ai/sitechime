@@ -8,6 +8,11 @@ export default defineConfig({
       NODE_ENV: JSON.stringify(process.env.NODE_ENV)
     }
   },
+  css: {
+    modules: {
+      scopeBehaviour: 'global'
+    }
+  },
   build: {
     lib: {
       entry: 'src/components/ChatWidget/mount.tsx',
@@ -24,6 +29,8 @@ export default defineConfig({
           'react-dom': 'ReactDOM'
         }
       }
-    }
+    },
+    cssCodeSplit: false,
+    cssTarget: 'es2015'
   }
 })
