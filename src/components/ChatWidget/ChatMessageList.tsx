@@ -55,7 +55,7 @@ export const ChatMessageList: React.FC = () => {
             </div>
           )}
           
-          <div className="whitespace-pre-wrap text-sm text-left">
+          <div className={`whitespace-pre-wrap text-sm ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
             {msg.content}
           </div>
         </div>

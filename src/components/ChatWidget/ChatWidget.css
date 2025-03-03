@@ -123,6 +123,7 @@
   align-self: flex-end;
   border-bottom-right-radius: 0.25rem;
   margin-left: auto;
+  text-align: right;
 }
 
 .message-assistant {
@@ -130,6 +131,7 @@
   border-bottom-left-radius: 0.25rem;
   margin-right: auto;
   margin-left: 0;
+  text-align: left;
 }
 
 .message-header {
