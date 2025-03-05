@@ -44,11 +44,13 @@ export const useChat = ({
   // Keep messagesRef in sync with messages state
   useEffect(() => {
     messagesRef.current = messages;
+    console.log('Messages state updated:', messages);
   }, [messages]);
 
   // Initialize with welcome message and test thinking message
   useEffect(() => {
     if (messages.length === 0) {
+      console.log('Initializing chat with welcome message');
       const initialMessages = [
         { role: 'assistant', content: welcomeMessage, id: generateId() },
         // Add an example message with thinking content for testing
@@ -60,12 +62,14 @@ export const useChat = ({
   }, [welcomeMessage]);
 
   const sendMessage = useCallback(async (content: string) => {
+    console.log('sendMessage called with content:', content);
     const userMessage: Message = { role: 'user', content, id: generateId() };
     console.log('Adding user message:', userMessage);
     
     // First update: Add user message
     setMessages(prev => {
       const updatedMessages = [...prev, userMessage];
+      console.log('Added user message, new messages state:', updatedMessages);
       return updatedMessages;
     });
     
@@ -81,7 +85,7 @@ export const useChat = ({
     
     setMessages(prev => {
       const updatedMessages = [...prev, { role: 'assistant', content: '', id: assistantMessageId }];
-      console.log('Messages after adding empty assistant message:', updatedMessages);
+      console.log('Added empty assistant message, new messages state:', updatedMessages);
       currentMessages = [...updatedMessages];
       return updatedMessages;
     });
@@ -89,6 +93,7 @@ export const useChat = ({
     try {
       // Wait for state to be updated before proceeding
       await new Promise(resolve => setTimeout(resolve, 0));
+      console.log('Sending messages to API:', currentMessages.slice(0, -1));
       
       // Use the most up-to-date messages when making the API call
       await sendChatMessage(
@@ -96,14 +101,14 @@ export const useChat = ({
         currentMessages.slice(0, -1).map(({role, content}) => ({role, content})),
         apiKey,
         (chunk: string) => {
-          console.log('Received chunk:', chunk);
+          console.log('Received chunk in useChat:', chunk);
           // Update the last message (which is the assistant's response) with the new chunk
           setMessages(prev => {
             const newMessages = [...prev];
             const lastMessageIndex = newMessages.length - 1;
             if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
               const updatedContent = newMessages[lastMessageIndex].content + chunk;
-              console.log('Updating assistant message with chunk, new content:', updatedContent);
+              console.log('Updating assistant message content:', updatedContent);
               // Create a completely new message object to ensure React detects the change
               newMessages[lastMessageIndex] = {
                 ...newMessages[lastMessageIndex],
@@ -126,9 +131,10 @@ export const useChat = ({
       );
       
       // Debug: Log final state of messages after streaming is complete
-      console.log('Streaming complete, final messages state:', messagesRef.current);
+      console.log('API call completed, final messages state:', messagesRef.current);
       
     } catch (err) {
+      console.error('Error in sendMessage:', err);
       const error = err as Error;
       if (error.name !== 'AbortError') {
         console.error('Error sending message:', error);
@@ -136,21 +142,19 @@ export const useChat = ({
           // Replace the empty assistant message with an error message
           const newMessages = [...prev];
           const lastMessageIndex = newMessages.length - 1;
+          const errorMessage = {
+            role: 'assistant',
+            content: 'I apologize, but I encountered an error processing your request. Please try again.',
+            id: generateId()
+          };
+          
           if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant' && 
               newMessages[lastMessageIndex].content === '') {
-            newMessages[lastMessageIndex] = {
-              role: 'assistant',
-              content: 'I apologize, but I encountered an error processing your request. Please try again.',
-              id: generateId()
-            };
+            newMessages[lastMessageIndex] = errorMessage;
           } else {
-            // If for some reason we don't have an empty assistant message, add a new one
-            newMessages.push({ 
-              role: 'assistant', 
-              content: 'I apologize, but I encountered an error processing your request. Please try again.',
-              id: generateId()
-            });
+            newMessages.push(errorMessage);
           }
+          console.log('Error occurred, updated messages:', newMessages);
           return newMessages;
         });
       }

@@ -9,6 +9,7 @@ const processMessageContent = (content: string) => {
   // First check if we have an unclosed thinking tag
   if (content.includes('<think>') && !content.includes('</think>')) {
     const parts = content.split('<think>');
+    console.log('Found unclosed thinking tag, parts:', parts);
     return {
       regularContent: parts[0] || '',
       thinkingContent: parts[1] || '',
@@ -24,9 +25,16 @@ const processMessageContent = (content: string) => {
   
   // Extract all thinking content (we'll only display the last one for simplicity)
   while ((match = thinkingRegex.exec(content)) !== null) {
+    console.log('Found thinking content match:', match);
     thinkingContent = match[1]; // Store the content inside the tags
     regularContent = regularContent.replace(match[0], ''); // Remove the entire tag + content
   }
+  
+  console.log('Processed content result:', {
+    regularContent: regularContent.trim(),
+    thinkingContent,
+    inProgressThinking: false
+  });
   
   return { 
     regularContent: regularContent.trim(),
@@ -50,11 +58,12 @@ export const ChatMessageList: React.FC = () => {
   
   // Log messages when they change
   useEffect(() => {
-    console.log('Messages in ChatMessageList updated:', messages);
+    console.log('Messages in ChatMessageList changed:', messages);
   }, [messages]);
   
   // Scroll to bottom when messages change
   useEffect(() => {
+    console.log('Scrolling to bottom');
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
   
@@ -67,6 +76,7 @@ export const ChatMessageList: React.FC = () => {
       )}
       
       {messages.map((msg, index) => {
+        console.log(`Rendering message ${index}:`, msg);
         // Process message content to extract thinking tokens if they exist
         const { regularContent, thinkingContent, inProgressThinking } = processMessageContent(msg.content);
         const isThinkingExpanded = thinkingExpanded[index] || false;
@@ -79,7 +89,7 @@ export const ChatMessageList: React.FC = () => {
         
         return (
           <div
-            key={index}
+            key={msg.id || index}
             className={`chat-message ${
               msg.role === 'user' ? 'message-user ml-auto' : 'message-assistant mr-auto'
             }`}
@@ -183,6 +193,7 @@ export const ChatMessageList: React.FC = () => {
       })}
       
       {isLoading && !messages[messages.length - 1]?.content?.includes('<think>') && (
+        console.log('Rendering loading indicator') ||
         <div 
           className="chat-message message-assistant mr-auto"
           style={{ backgroundColor: theme.surface, color: theme.text }}
