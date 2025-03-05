@@ -2,7 +2,13 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { useChat } from '../../hooks/useChat';
 import { fetchWidgetConfig } from '../../services/configService';
 import type { WidgetConfig } from '../../types/widgetConfig';
-import type { Message } from '../../types/chat';
+
+// Updated Message interface matching useChat.ts
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+  id?: string;
+}
 
 interface ChatContextProps {
   apiKey: string;
@@ -95,6 +101,11 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     maxRetries: config?.security.authentication.maxRetries,
   });
 
+  // Log whenever messages change to help debug
+  useEffect(() => {
+    console.log('ChatContext received updated messages:', messages);
+  }, [messages]);
+
   // When messages change, automatically set any new messages with thinking content to expanded
   useEffect(() => {
     const newThinkingExpanded = { ...thinkingExpanded };
@@ -114,10 +125,11 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     if (updated) {
       setThinkingExpanded(newThinkingExpanded);
     }
-  }, [messages]);
+  }, [messages, thinkingExpanded]);
 
   const handleSend = (message: string) => {
     if (message.trim()) {
+      console.log('ChatContext: Sending message:', message);
       sendMessage(message);
       setInputValue('');
       if (config?.widget.behavior.autoExpand) {

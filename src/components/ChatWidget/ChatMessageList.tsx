@@ -4,6 +4,8 @@ import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 
 // Helper function to process message content with streaming thinking tokens
 const processMessageContent = (content: string) => {
+  console.log('Processing message content:', content);
+  
   // First check if we have an unclosed thinking tag
   if (content.includes('<think>') && !content.includes('</think>')) {
     const parts = content.split('<think>');
@@ -46,6 +48,11 @@ export const ChatMessageList: React.FC = () => {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
+  // Log messages when they change
+  useEffect(() => {
+    console.log('Messages in ChatMessageList updated:', messages);
+  }, [messages]);
+  
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -63,6 +70,12 @@ export const ChatMessageList: React.FC = () => {
         // Process message content to extract thinking tokens if they exist
         const { regularContent, thinkingContent, inProgressThinking } = processMessageContent(msg.content);
         const isThinkingExpanded = thinkingExpanded[index] || false;
+        
+        console.log(`Rendering message ${index}:`, {
+          role: msg.role,
+          content: msg.content,
+          processedContent: { regularContent, thinkingContent, inProgressThinking }
+        });
         
         return (
           <div
@@ -159,8 +172,11 @@ export const ChatMessageList: React.FC = () => {
               </div>
             )}
             
-            <div className={`whitespace-pre-wrap text-sm ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-              {regularContent}
+            <div 
+              className={`whitespace-pre-wrap text-sm ${msg.role === 'user' ? 'text-right' : 'text-left'}`}
+              data-testid="message-content"
+            >
+              {regularContent || ' '}
             </div>
           </div>
         );

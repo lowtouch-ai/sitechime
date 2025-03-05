@@ -55,54 +55,61 @@ export const sendChatMessage = async (
         const reader = response.body!.getReader();
         const decoder = new TextDecoder();
         let content = '';
-        let inThinking = false;
 
         try {
           while (true) {
             const { done, value } = await reader.read();
+            
             if (done) break;
 
             const chunk = decoder.decode(value);
-            const lines = chunk.split('\n');
-
+            // Split by newlines and filter out empty lines
+            const lines = chunk
+              .split('\n')
+              .filter(line => line.trim())
+              .map(line => line.replace(/^data: /, '').trim());
+            
             for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if (data === '[DONE]') continue;
 
-                try {
-                  const parsed = JSON.parse(data);
-                  const contentChunk = parsed.choices[0]?.delta?.content || '';
+              console.log('line:', line);
+
+              if (!line || line === '[DONE]') continue;
+
+              try {
+                // Some implementations might send partial JSON chunks
+                // Try to parse only if it looks like valid JSON
+                if (line.startsWith('{') && line.endsWith('}')) {
+                  const parsed = JSON.parse(line);
+                  const contentChunk = parsed.choices?.[0]?.delta?.content;
+                  
                   if (contentChunk) {
-                    // Send content chunk directly to keep streaming behavior
                     onChunk(contentChunk);
                     content += contentChunk;
                   }
-                } catch (e) {
-                  console.error('Error parsing chunk:', e);
                 }
+              } catch (e) {
+                // Log parsing error with the problematic line for debugging
+                console.warn('Error parsing chunk:', e, '\nProblematic line:', line);
               }
             }
           }
-        } catch (error) {
-          if (error.name === 'AbortError') {
+          return content;
+        } catch (error: unknown) {
+          if (error instanceof Error && error.name === 'AbortError') {
             reader.cancel();
-            throw error;
           }
+          throw error;
         }
-
-        return content;
       } else {
         const data = await response.json();
         return data.choices[0]?.message?.content || '';
       }
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        throw error;
-      }
-      if (retryCount < mergedConfig.maxRetries! && error instanceof Error) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') throw error;
+      
+      if (retryCount < mergedConfig.maxRetries!) {
         retryCount++;
-        const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
+        const delay = Math.pow(2, retryCount) * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
         return makeRequest();
       }

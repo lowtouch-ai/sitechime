@@ -4,6 +4,8 @@ import { sendChatMessage } from '../services/chatService';
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  // Add an id to force re-renders when content changes
+  id?: string;
 }
 
 interface UseChatProps {
@@ -13,6 +15,9 @@ interface UseChatProps {
   timeoutMs?: number;
   maxRetries?: number;
 }
+
+// Generate a unique ID for messages
+const generateId = () => Math.random().toString(36).substring(2, 9);
 
 // FOR TESTING: Add an example message with thinking tokens
 const EXAMPLE_THINKING_MESSAGE = `I'll help you solve this problem. <think>
@@ -33,42 +38,83 @@ export const useChat = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  // Keep a ref to the current messages to avoid dependency issues
+  const messagesRef = useRef<Message[]>([]);
+  
+  // Keep messagesRef in sync with messages state
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   // Initialize with welcome message and test thinking message
   useEffect(() => {
     if (messages.length === 0) {
       const initialMessages = [
-        { role: 'assistant', content: welcomeMessage },
+        { role: 'assistant', content: welcomeMessage, id: generateId() },
         // Add an example message with thinking content for testing
-        { role: 'user', content: 'Can you help me solve this problem?' },
-        { role: 'assistant', content: EXAMPLE_THINKING_MESSAGE }
+        { role: 'user', content: 'Can you help me solve this problem?', id: generateId() },
+        { role: 'assistant', content: EXAMPLE_THINKING_MESSAGE, id: generateId() }
       ];
       setMessages(initialMessages);
     }
   }, [welcomeMessage]);
 
   const sendMessage = useCallback(async (content: string) => {
-    const userMessage: Message = { role: 'user', content };
-    setMessages(prev => [...prev, userMessage]);
+    const userMessage: Message = { role: 'user', content, id: generateId() };
+    console.log('Adding user message:', userMessage);
+    
+    // First update: Add user message
+    setMessages(prev => {
+      const updatedMessages = [...prev, userMessage];
+      return updatedMessages;
+    });
+    
     setIsLoading(true);
 
     // Create new AbortController for this request
     abortControllerRef.current = new AbortController();
+    
+    // Second update: Add empty assistant message that will be updated with streaming content
+    console.log('Adding empty assistant message for streaming');
+    const assistantMessageId = generateId();
+    let currentMessages: Message[] = [];
+    
+    setMessages(prev => {
+      const updatedMessages = [...prev, { role: 'assistant', content: '', id: assistantMessageId }];
+      console.log('Messages after adding empty assistant message:', updatedMessages);
+      currentMessages = [...updatedMessages];
+      return updatedMessages;
+    });
 
     try {
-      const response = await sendChatMessage(
-        messages.concat(userMessage),
+      // Wait for state to be updated before proceeding
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      // Use the most up-to-date messages when making the API call
+      await sendChatMessage(
+        // Use all messages except the empty one we just added
+        currentMessages.slice(0, -1).map(({role, content}) => ({role, content})),
         apiKey,
         (chunk: string) => {
+          console.log('Received chunk:', chunk);
+          // Update the last message (which is the assistant's response) with the new chunk
           setMessages(prev => {
-            const lastMessage = prev[prev.length - 1];
-            if (lastMessage && lastMessage.role === 'assistant') {
-              return [
-                ...prev.slice(0, -1),
-                { ...lastMessage, content: lastMessage.content + chunk }
-              ];
+            const newMessages = [...prev];
+            const lastMessageIndex = newMessages.length - 1;
+            if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
+              const updatedContent = newMessages[lastMessageIndex].content + chunk;
+              console.log('Updating assistant message with chunk, new content:', updatedContent);
+              // Create a completely new message object to ensure React detects the change
+              newMessages[lastMessageIndex] = {
+                ...newMessages[lastMessageIndex],
+                content: updatedContent,
+                // Keep the same ID but force a re-render
+                id: assistantMessageId
+              };
+            } else {
+              console.warn('Could not find assistant message to update');
             }
-            return [...prev, { role: 'assistant', content: chunk }];
+            return [...newMessages]; // Return a new array reference
           });
         },
         {
@@ -78,31 +124,41 @@ export const useChat = ({
           signal: abortControllerRef.current.signal,
         }
       );
-
-      setMessages(prev => {
-        const lastMessage = prev[prev.length - 1];
-        if (lastMessage && lastMessage.role === 'assistant') {
-          return prev;
-        }
-        return [...prev, { role: 'assistant', content: response }];
-      });
+      
+      // Debug: Log final state of messages after streaming is complete
+      console.log('Streaming complete, final messages state:', messagesRef.current);
+      
     } catch (err) {
       const error = err as Error;
       if (error.name !== 'AbortError') {
         console.error('Error sending message:', error);
-        setMessages(prev => [
-          ...prev,
-          { 
-            role: 'assistant', 
-            content: 'I apologize, but I encountered an error processing your request. Please try again.'
+        setMessages(prev => {
+          // Replace the empty assistant message with an error message
+          const newMessages = [...prev];
+          const lastMessageIndex = newMessages.length - 1;
+          if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant' && 
+              newMessages[lastMessageIndex].content === '') {
+            newMessages[lastMessageIndex] = {
+              role: 'assistant',
+              content: 'I apologize, but I encountered an error processing your request. Please try again.',
+              id: generateId()
+            };
+          } else {
+            // If for some reason we don't have an empty assistant message, add a new one
+            newMessages.push({ 
+              role: 'assistant', 
+              content: 'I apologize, but I encountered an error processing your request. Please try again.',
+              id: generateId()
+            });
           }
-        ]);
+          return newMessages;
+        });
       }
     } finally {
       setIsLoading(false);
       abortControllerRef.current = null;
     }
-  }, [messages, apiKey, endpoint, timeoutMs, maxRetries]);
+  }, [apiKey, endpoint, timeoutMs, maxRetries]);  // Removed messages from dependency array
 
   const clearMessages = useCallback(() => {
     // Abort any ongoing streaming response
@@ -111,7 +167,7 @@ export const useChat = ({
       abortControllerRef.current = null;
     }
     setIsLoading(false);
-    setMessages(welcomeMessage ? [{ role: 'assistant', content: welcomeMessage }] : []);
+    setMessages(welcomeMessage ? [{ role: 'assistant', content: welcomeMessage, id: generateId() }] : []);
   }, [welcomeMessage]);
 
   const abortStreaming = useCallback(() => {
