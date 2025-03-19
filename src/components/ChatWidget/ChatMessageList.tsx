@@ -193,7 +193,6 @@ export const ChatMessageList: React.FC = () => {
       })}
       
       {isLoading && !messages[messages.length - 1]?.content?.includes('<think>') && (
-        console.log('Rendering loading indicator') ||
         <div 
           className="chat-message message-assistant mr-auto"
           style={{ backgroundColor: theme.surface, color: theme.text }}

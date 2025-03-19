@@ -48,18 +48,18 @@ export const useChat = ({
   }, [messages]);
 
   // Initialize with welcome message and test thinking message
-  useEffect(() => {
-    if (messages.length === 0) {
-      console.log('Initializing chat with welcome message');
-      const initialMessages = [
-        { role: 'assistant', content: welcomeMessage, id: generateId() },
-        // Add an example message with thinking content for testing
-        { role: 'user', content: 'Can you help me solve this problem?', id: generateId() },
-        { role: 'assistant', content: EXAMPLE_THINKING_MESSAGE, id: generateId() }
-      ];
-      setMessages(initialMessages);
-    }
-  }, [welcomeMessage]);
+  // useEffect(() => {
+  //   if (messages.length === 0) {
+  //     console.log('Initializing chat with welcome message');
+  //     const initialMessages = [
+  //       { role: 'assistant', content: welcomeMessage, id: generateId() },
+  //       // Add an example message with thinking content for testing
+  //       { role: 'user', content: 'Can you help me solve this problem?', id: generateId() },
+  //       { role: 'assistant', content: EXAMPLE_THINKING_MESSAGE, id: generateId() }
+  //     ];
+  //     setMessages(initialMessages);
+  //   }
+  // }, [welcomeMessage]);
 
   const sendMessage = useCallback(async (content: string) => {
     console.log('sendMessage called with content:', content);
@@ -84,7 +84,7 @@ export const useChat = ({
     let currentMessages: Message[] = [];
     
     setMessages(prev => {
-      const updatedMessages = [...prev, { role: 'assistant', content: '', id: assistantMessageId }];
+      const updatedMessages: Message[] = [...prev, { role: 'assistant', content: '', id: assistantMessageId }];
       console.log('Added empty assistant message, new messages state:', updatedMessages);
       currentMessages = [...updatedMessages];
       return updatedMessages;
@@ -142,7 +142,7 @@ export const useChat = ({
           // Replace the empty assistant message with an error message
           const newMessages = [...prev];
           const lastMessageIndex = newMessages.length - 1;
-          const errorMessage = {
+          const errorMessage: Message = {
             role: 'assistant',
             content: 'I apologize, but I encountered an error processing your request. Please try again.',
             id: generateId()

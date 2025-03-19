@@ -19,13 +19,13 @@
   },
   "branding": {
     "logo": {
-      "url": "/logo.png",
+      "url": "https://pcpl.io/wp-content/uploads/2023/04/blue-removebg-preview-e1680865237187-130x101.png",
       "height": 40,
       "width": 40
     },
     "theme": {
-      "primaryColor": "#007BFF",
-      "secondaryColor": "#FFF",
+      "primaryColor": "#FFFFFF",
+      "secondaryColor": "#000",
       "fontFamily": "Arial"
     },
     "poweredBy": {
@@ -47,9 +47,9 @@
       "maxConcurrentUsers": 100
     },
     "api": {
-      "endpoint": "http://192.168.0.34:1234/v1/chat/completions",
+      "endpoint": "http://127.0.0.1:8000/api/openai/v1/chat/completions",
       "version": "v1",
-      "timeout": 30000
+      "timeout": 300000
     }
   },
   "features": {
