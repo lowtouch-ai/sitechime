@@ -164,6 +164,48 @@ export const useChat = ({
     }
   }, [apiKey, endpoint, timeoutMs, maxRetries]);  // Removed messages from dependency array
 
+  // Retry the last user message by removing the last assistant message and resending the last user message
+  const retryLastMessage = useCallback(() => {
+    if (isLoading) {
+      // If currently streaming, abort first
+      abortStreaming();
+    }
+
+    // Get current messages
+    const currentMessages = [...messagesRef.current];
+    
+    // Find the last user and assistant message pair
+    let lastUserMessageIndex = -1;
+    for (let i = currentMessages.length - 1; i >= 0; i--) {
+      if (currentMessages[i].role === 'user') {
+        lastUserMessageIndex = i;
+        break;
+      }
+    }
+    
+    if (lastUserMessageIndex >= 0) {
+      const lastUserMessage = currentMessages[lastUserMessageIndex];
+      
+      // Remove assistant's response (should be right after the user message)
+      if (lastUserMessageIndex < currentMessages.length - 1 && 
+          currentMessages[lastUserMessageIndex + 1].role === 'assistant') {
+        console.log('Retrying last message: Removing assistant response');
+        // Remove the assistant's response
+        setMessages(prev => {
+          const newMessages = [...prev];
+          newMessages.splice(lastUserMessageIndex + 1, 1);
+          return newMessages;
+        });
+      }
+      
+      // Resend the last user message
+      console.log('Retrying last message:', lastUserMessage.content);
+      sendMessage(lastUserMessage.content);
+    } else {
+      console.warn('No user message found to retry');
+    }
+  }, [sendMessage, isLoading]);
+
   const clearMessages = useCallback(() => {
     // Abort any ongoing streaming response
     if (abortControllerRef.current) {
@@ -188,5 +230,6 @@ export const useChat = ({
     sendMessage,
     clearMessages,
     abortStreaming,
+    retryLastMessage,
   };
 };
