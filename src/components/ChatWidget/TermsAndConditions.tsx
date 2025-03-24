@@ -1,13 +1,22 @@
 import React from 'react';
 import { useChatContext } from './ChatContext';
 
+const DEFAULT_TERMS = {
+  title: "Terms and Conditions",
+  content: "By using this chat service, you agree to the following terms and conditions:\n\n1. All conversations may be recorded for quality assurance and training purposes.\n2. Do not share sensitive personal information such as credit card details or passwords.\n3. This service is provided \"as is\" without any warranties.\n4. We reserve the right to terminate access for violations of these terms.\n5. Information provided by the AI assistant should not be considered professional advice.",
+  acceptButtonText: "Accept",
+  declineButtonText: "Decline"
+};
+
 export const TermsAndConditions: React.FC = () => {
-  const { acceptTerms, declineTerms, theme } = useChatContext();
+  const { acceptTerms, declineTerms, theme, config } = useChatContext();
+  
+  const terms = config?.widget.terms || DEFAULT_TERMS;
 
   return (
     <div className="terms-and-conditions flex-1 overflow-y-auto p-4 flex flex-col">
       <h3 className="text-lg font-semibold mb-3" style={{ color: theme.text }}>
-        Terms and Conditions
+        {terms.title}
       </h3>
       
       <div 
@@ -18,21 +27,9 @@ export const TermsAndConditions: React.FC = () => {
           color: theme.text
         }}
       >
-        <p className="mb-2">
-          By using this chat service, you agree to the following terms and conditions:
-        </p>
-        
-        <ol className="list-decimal pl-5 space-y-2">
-          <li>All conversations may be recorded for quality assurance and training purposes.</li>
-          <li>Do not share sensitive personal information such as credit card details or passwords.</li>
-          <li>This service is provided "as is" without any warranties.</li>
-          <li>We reserve the right to terminate access for violations of these terms.</li>
-          <li>Information provided by the AI assistant should not be considered professional advice.</li>
-        </ol>
-        
-        <p className="mt-4">
-          By clicking "Accept", you confirm that you have read, understood, and agree to these terms.
-        </p>
+        <div className="whitespace-pre-line">
+          {terms.content}
+        </div>
       </div>
       
       <div className="terms-actions flex space-x-3 justify-center">
@@ -45,7 +42,7 @@ export const TermsAndConditions: React.FC = () => {
             border: `1px solid ${theme.border}`
           }}
         >
-          Decline
+          {terms.declineButtonText}
         </button>
         
         <button
@@ -56,7 +53,7 @@ export const TermsAndConditions: React.FC = () => {
             color: theme.secondary
           }}
         >
-          Accept
+          {terms.acceptButtonText}
         </button>
       </div>
     </div>

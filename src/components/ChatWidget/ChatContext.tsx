@@ -79,15 +79,13 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  // Initialize thinking sections to be expanded by default
   const [thinkingExpanded, setThinkingExpanded] = useState<ThinkingExpandedMap>({});
   
   // Terms and conditions state
   const [termsAccepted, setTermsAccepted] = useState(() => {
-    // Check localStorage for saved preference
     return localStorage.getItem(TERMS_ACCEPTED_KEY) === 'true';
   });
-  const [showTerms, setShowTerms] = useState(!termsAccepted);
+  const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -95,10 +93,14 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
         const widgetConfig = await fetchWidgetConfig(configUrl);
         setConfig(widgetConfig);
         
+        // Set initial states based on config
         if (widgetConfig.widget.behavior.initialState === 'expanded') {
           setIsExpanded(true);
           setIsOpen(true);
         }
+        
+        // Show terms only if enabled in config and not previously accepted
+        setShowTerms(widgetConfig.widget.terms?.enabled !== false && !termsAccepted);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load configuration');
         console.error('Failed to load widget configuration:', err);
@@ -106,7 +108,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     };
 
     loadConfig();
-  }, [configUrl]);
+  }, [configUrl, termsAccepted]);
 
   const { messages, isLoading, sendMessage, clearMessages, abortStreaming, retryLastMessage } = useChat({
     apiKey,

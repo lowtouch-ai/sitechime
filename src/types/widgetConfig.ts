@@ -18,6 +18,13 @@ export interface WidgetConfig {
       autoExpand: boolean;
       allowFullscreen: boolean;
     };
+    terms: {
+      enabled: boolean;
+      title: string;
+      content: string;
+      acceptButtonText: string;
+      declineButtonText: string;
+    };
   };
   branding: {
     logo: {

@@ -17,6 +17,13 @@
       "initialState": "minimized",
       "autoExpand": false,
       "allowFullscreen": true
+    },
+    "terms": {
+      "enabled": true,
+      "title": "Terms and Conditions",
+      "content": "By using this chat service, you agree to the following terms:\n\n1. Your conversations may be recorded for quality assurance.\n2. Do not share sensitive personal information.\n3. This service is provided \"as is\" without warranties.\n4. We may terminate access for violations of these terms.\n5. AI responses should not be considered professional advice.\n\nBy accepting, you confirm that you understand and agree to these terms.",
+      "acceptButtonText": "Accept",
+      "declineButtonText": "Decline"
     }
   },
   "branding": {
@@ -49,7 +56,7 @@
       "maxConcurrentUsers": 100
     },
     "api": {
-      "endpoint": "http://127.0.0.1:8000/api/openai/v1/chat/completions",
+      "endpoint": "https://ollama.duraisingam.com/v1/chat/completions",
       "version": "v1",
       "timeout": 300000
     }
