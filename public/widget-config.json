@@ -10,11 +10,13 @@
     "dimensions": {
       "width": 350,
       "height": 500,
-      "minHeight": 300
+      "minHeight": 300,
+      "maxWidth": 1200
     },
     "behavior": {
       "initialState": "minimized",
-      "autoExpand": false
+      "autoExpand": false,
+      "allowFullscreen": true
     }
   },
   "branding": {

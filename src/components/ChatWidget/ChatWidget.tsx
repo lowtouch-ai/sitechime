@@ -29,12 +29,9 @@ const ChatWidgetInner: React.FC = () => {
     zIndex: 9999
   };
 
-  // Calculate container width and height based on expansion state
+  // Remove containerStyle width and height since they'll be controlled by CSS classes
   const containerStyle: React.CSSProperties = {
-    width: isExpanded ? '400px' : '340px',
-    height: isExpanded ? '600px' : '500px',
     backgroundColor: theme.background,
-    borderRadius: '12px',
     overflow: 'hidden',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
     display: 'flex',
@@ -46,7 +43,10 @@ const ChatWidgetInner: React.FC = () => {
       style={widgetStyle}>
       <ChatToggleButton />
       
-      <div className={`chat-window ${isOpen ? 'visible' : ''}`} style={containerStyle}>
+      <div 
+        className={`chat-window ${isOpen ? 'visible' : ''} ${isExpanded ? 'expanded' : ''}`} 
+        style={containerStyle}
+      >
         <ChatHeader />
         
         {showTerms ? (

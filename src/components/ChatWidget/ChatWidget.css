@@ -83,9 +83,9 @@
 }
 
 .chat-window {
-  position: absolute;
+  position: fixed;
   bottom: 80px;
-  right: 0;
+  right: 20px;
   min-height: 500px;
   height: calc(90vh - 100px);
   width: 400px;
@@ -93,12 +93,21 @@
   flex-direction: column;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out, width 0.3s ease-out, height 0.3s ease-out, bottom 0.3s ease-out, right 0.3s ease-out;
 }
 
 .chat-window.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+.chat-window.expanded {
+  width: 100% !important;
+  height: 100vh !important;
+  bottom: 0 !important;
+  right: 0 !important;
+  border-radius: 0 !important;
+  max-width: none !important;
 }
 
 .chat-messages {

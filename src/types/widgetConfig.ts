@@ -11,10 +11,12 @@ export interface WidgetConfig {
       width: number;
       height: number;
       minHeight: number;
+      maxWidth: number;
     };
     behavior: {
       initialState: 'minimized' | 'expanded';
       autoExpand: boolean;
+      allowFullscreen: boolean;
     };
   };
   branding: {
