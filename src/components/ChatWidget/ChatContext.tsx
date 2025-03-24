@@ -52,9 +52,16 @@ interface ChatContextValue {
   setInputValue: (value: string) => void;
   thinkingExpanded: ThinkingExpandedMap;
   toggleThinkingExpanded: (messageIndex: number) => void;
+  termsAccepted: boolean;
+  acceptTerms: () => void;
+  declineTerms: () => void;
+  showTerms: boolean;
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);
+
+// Local storage key for terms acceptance
+const TERMS_ACCEPTED_KEY = 'chat-widget-terms-accepted';
 
 export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> = ({
   children,
@@ -74,6 +81,13 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   const [inputValue, setInputValue] = useState('');
   // Initialize thinking sections to be expanded by default
   const [thinkingExpanded, setThinkingExpanded] = useState<ThinkingExpandedMap>({});
+  
+  // Terms and conditions state
+  const [termsAccepted, setTermsAccepted] = useState(() => {
+    // Check localStorage for saved preference
+    return localStorage.getItem(TERMS_ACCEPTED_KEY) === 'true';
+  });
+  const [showTerms, setShowTerms] = useState(!termsAccepted);
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -129,7 +143,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   }, [messages, thinkingExpanded]);
 
   const handleSend = (message: string) => {
-    if (message.trim()) {
+    if (message.trim() && termsAccepted) {
       console.log('ChatContext: Sending message:', message);
       sendMessage(message);
       setInputValue('');
@@ -145,6 +159,18 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
       ...prev,
       [messageIndex]: !prev[messageIndex]
     }));
+  };
+
+  // Handle terms and conditions accept/decline
+  const acceptTerms = () => {
+    setTermsAccepted(true);
+    setShowTerms(false);
+    // Save to localStorage so user doesn't have to accept again
+    localStorage.setItem(TERMS_ACCEPTED_KEY, 'true');
+  };
+
+  const declineTerms = () => {
+    setIsOpen(false);
   };
 
   const theme = {
@@ -176,7 +202,11 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     inputValue,
     setInputValue,
     thinkingExpanded,
-    toggleThinkingExpanded
+    toggleThinkingExpanded,
+    termsAccepted,
+    acceptTerms,
+    declineTerms,
+    showTerms
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

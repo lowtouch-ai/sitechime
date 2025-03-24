@@ -7,6 +7,7 @@ import { ChatHeader } from './ChatHeader';
 import { ChatMessageList } from './ChatMessageList';
 import { ChatInput } from './ChatInput';
 import { PoweredByFooter } from './PoweredByFooter';
+import { TermsAndConditions } from './TermsAndConditions';
 import type { ChatWidgetProps } from './types';
 import { useChatContext } from './ChatContext';
 
@@ -16,7 +17,8 @@ const ChatWidgetInner: React.FC = () => {
     isOpen, 
     widgetPosition,
     isExpanded,
-    theme
+    theme,
+    showTerms
   } = useChatContext();
 
   // Calculate widget position
@@ -46,7 +48,13 @@ const ChatWidgetInner: React.FC = () => {
       
       <div className={`chat-window ${isOpen ? 'visible' : ''}`} style={containerStyle}>
         <ChatHeader />
-        <ChatMessageList />
+        
+        {showTerms ? (
+          <TermsAndConditions />
+        ) : (
+          <ChatMessageList />
+        )}
+        
         <ChatInput />
         <PoweredByFooter />
       </div>

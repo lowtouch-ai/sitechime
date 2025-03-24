@@ -3,7 +3,17 @@ import { PaperAirplaneIcon, StopIcon } from '@heroicons/react/24/solid';
 import { useChatContext } from './ChatContext';
 
 export const ChatInput: React.FC = () => {
-  const { sendMessage, inputValue, setInputValue, theme, isLoading, abortStreaming } = useChatContext();
+  const { 
+    sendMessage, 
+    inputValue, 
+    setInputValue, 
+    theme, 
+    isLoading, 
+    abortStreaming,
+    termsAccepted,
+    showTerms
+  } = useChatContext();
+  
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSend = () => {
@@ -12,7 +22,7 @@ export const ChatInput: React.FC = () => {
       return;
     }
 
-    if (inputValue.trim()) {
+    if (inputValue.trim() && termsAccepted) {
       sendMessage(inputValue);
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
@@ -21,7 +31,7 @@ export const ChatInput: React.FC = () => {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && termsAccepted) {
       e.preventDefault();
       handleSend();
     }
@@ -35,6 +45,14 @@ export const ChatInput: React.FC = () => {
     }
   };
 
+  // Determine if input should be disabled
+  const isInputDisabled = isLoading || showTerms;
+  
+  // Message to show in the placeholder depending on terms acceptance
+  const placeholderText = !termsAccepted && showTerms 
+    ? "Please accept terms and conditions to chat..." 
+    : "Type your message...";
+
   return (
     <div className="border-t p-4" style={{ borderColor: theme.border }}>
       <div className="relative flex items-center">
@@ -47,24 +65,27 @@ export const ChatInput: React.FC = () => {
             maxHeight: '150px',
             backgroundColor: theme.surface,
             color: theme.text,
-            outlineColor: theme.primary
+            outlineColor: theme.primary,
+            opacity: isInputDisabled ? 0.6 : 1
           }}
-          placeholder="Type your message..."
+          placeholder={placeholderText}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onInput={handleTextareaInput}
           onKeyDown={handleKeyDown}
           rows={1}
-          disabled={isLoading}
+          disabled={isInputDisabled}
         />
         <button
           className="absolute right-2 p-2 rounded-full hover:opacity-80 transition-all"
           style={{ 
-            backgroundColor: isLoading || inputValue.trim() ? theme.primary : 'transparent',
-            color: isLoading || inputValue.trim() ? theme.secondary : theme.text
+            backgroundColor: (isLoading || (inputValue.trim() && termsAccepted)) ? theme.primary : 'transparent',
+            color: (isLoading || (inputValue.trim() && termsAccepted)) ? theme.secondary : theme.text,
+            opacity: isInputDisabled ? 0.6 : 1
           }}
           onClick={handleSend}
           aria-label={isLoading ? "Stop generating" : "Send message"}
+          disabled={isInputDisabled && !isLoading}
         >
           {isLoading ? (
             <StopIcon className="h-5 w-5" />
