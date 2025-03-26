@@ -63,9 +63,33 @@ const ChatContext = createContext<ChatContextValue | undefined>(undefined);
 // Local storage key for terms acceptance
 const TERMS_ACCEPTED_KEY = 'chat-widget-terms-accepted';
 
+const recordTermsAcceptance = async (configId: string) => {
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/tnc/accept/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        config_id: configId
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to record terms acceptance');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error recording terms acceptance:', error);
+    // Still allow the user to proceed even if the API call fails
+  }
+};
+
 export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> = ({
   children,
-  apiKey,
+  apiKey,  // This is actually the configId
   configUrl,
   position = 'bottom-right',
   primaryColor = '#0066cc',
@@ -164,11 +188,20 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   };
 
   // Handle terms and conditions accept/decline
-  const acceptTerms = () => {
-    setTermsAccepted(true);
-    setShowTerms(false);
-    // Save to localStorage so user doesn't have to accept again
-    localStorage.setItem(TERMS_ACCEPTED_KEY, 'true');
+  const acceptTerms = async () => {
+    try {
+      await recordTermsAcceptance(apiKey); // Use apiKey as configId
+      setTermsAccepted(true);
+      setShowTerms(false);
+      // Save to localStorage so user doesn't have to accept again
+      localStorage.setItem(TERMS_ACCEPTED_KEY, 'true');
+    } catch (error) {
+      console.error('Error in acceptTerms:', error);
+      // Still allow the user to proceed even if the API call fails
+      setTermsAccepted(true);
+      setShowTerms(false);
+      localStorage.setItem(TERMS_ACCEPTED_KEY, 'true');
+    }
   };
 
   const declineTerms = () => {
