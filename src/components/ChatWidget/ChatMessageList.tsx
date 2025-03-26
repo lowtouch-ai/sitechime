@@ -198,7 +198,8 @@ export const ChatMessageList: React.FC = () => {
         );
       })}
       
-      {isLoading && !messages[messages.length - 1]?.content?.includes('<think>') && (
+      {/* Ensure only one loading indicator is shown when waiting for a stream */}
+      {isLoading && !messages[messages.length - 1]?.content?.includes('<think>') && messages.length === 0 && (
         <div 
           className="chat-message message-assistant mr-auto"
           style={{ backgroundColor: theme.surface, color: theme.text }}
