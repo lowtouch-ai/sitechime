@@ -5,7 +5,7 @@ function App() {
   return (
     <div className="App">
       <ChatWidget 
-        apiKey="your-api-key-here"
+        apiKey="8b4222cf-ba57-4543-9f7c-bc8134fb45d8"
         configUrl="/widget-config.json"
         position="bottom-right"
         theme={{

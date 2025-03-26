@@ -40,6 +40,7 @@ export const sendChatMessage = async (
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
+          'X-Config-Key': `${apiKey}`,
         },
         body: JSON.stringify({
           model: 'deepscaler:1.5b-preview-q4_K_M',

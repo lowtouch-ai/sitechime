@@ -243,7 +243,7 @@ export const ChatMessageList: React.FC = () => {
         <div className="flex justify-center">
           <button 
             onClick={retryLastMessage}
-            className="retry-button flex items-center justify-center py-1 px-3 text-xs rounded-full border hover:bg-gray-100 transition-colors"
+            className="retry-button flex items-center justify-center py-1 px-3 text-xs rounded-full border hover:bg-gray-100 transition-colors bg-white"
             style={{
               borderColor: theme.border,
               color: theme.text
