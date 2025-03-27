@@ -45,6 +45,7 @@ export const ChatMessageList: React.FC = () => {
           theme={theme}
           thinkingExpanded={thinkingExpanded[index] || false}
           onToggleThinking={() => toggleThinkingExpanded(index)}
+          fileAttachment={msg.fileAttachment}
         />
       ))}
       

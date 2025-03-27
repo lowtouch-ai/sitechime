@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { sendChatMessage } from '../services/chatService';
+import { FileAttachment } from '../types/chat';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   // Add an id to force re-renders when content changes
   id?: string;
+  fileAttachment?: FileAttachment;
 }
 
 interface UseChatProps {
@@ -61,9 +63,14 @@ export const useChat = ({
   //   }
   // }, [welcomeMessage]);
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, fileAttachment?: FileAttachment) => {
     console.log('sendMessage called with content:', content);
-    const userMessage: Message = { role: 'user', content, id: generateId() };
+    const userMessage: Message = { 
+      role: 'user', 
+      content, 
+      id: generateId(),
+      fileAttachment 
+    };
     console.log('Adding user message:', userMessage);
     
     // First update: Add user message
@@ -93,12 +100,24 @@ export const useChat = ({
     try {
       // Wait for state to be updated before proceeding
       await new Promise(resolve => setTimeout(resolve, 0));
-      console.log('Sending messages to API:', currentMessages.slice(0, -1));
+      
+      // Prepare chat messages for API, including file content if available
+      const apiMessages = currentMessages.slice(0, -1).map(({role, content, fileAttachment}) => {
+        // If this is a user message with a file attachment, include the file content
+        if (role === 'user' && fileAttachment) {
+          return {
+            role,
+            content: `${content}\n\nFile attached: ${fileAttachment.name}\n\nFile content: ${fileAttachment.content}`
+          };
+        }
+        return {role, content};
+      });
+      
+      console.log('Sending messages to API:', apiMessages);
       
       // Use the most up-to-date messages when making the API call
       await sendChatMessage(
-        // Use all messages except the empty one we just added
-        currentMessages.slice(0, -1).map(({role, content}) => ({role, content})),
+        apiMessages,
         apiKey,
         (chunk: string) => {
           console.log('Received chunk in useChat:', chunk);
@@ -198,9 +217,9 @@ export const useChat = ({
         });
       }
       
-      // Resend the last user message
+      // Resend the last user message with its file attachment if any
       console.log('Retrying last message:', lastUserMessage.content);
-      sendMessage(lastUserMessage.content);
+      sendMessage(lastUserMessage.content, lastUserMessage.fileAttachment);
     } else {
       console.warn('No user message found to retry');
     }

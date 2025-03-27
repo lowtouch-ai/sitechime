@@ -1,6 +1,13 @@
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
+  fileAttachment?: FileAttachment;
+}
+
+export interface FileAttachment {
+  name: string;
+  content: string;
+  type: string;
 }
 
 export interface ChatWidgetProps {

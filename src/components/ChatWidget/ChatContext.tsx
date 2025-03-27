@@ -2,12 +2,14 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { useChat } from '../../hooks/useChat';
 import { fetchWidgetConfig } from '../../services/configService';
 import type { WidgetConfig } from '../../types/widgetConfig';
+import { FileAttachment } from '../../types/chat';
 
 // Updated Message interface matching useChat.ts
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   id?: string;
+  fileAttachment?: FileAttachment;
 }
 
 interface ChatContextProps {
@@ -33,7 +35,7 @@ interface ChatContextValue {
   setIsExpanded: (value: boolean) => void;
   messages: Message[];
   isLoading: boolean;
-  sendMessage: (message: string) => void;
+  sendMessage: (message: string, fileAttachment?: FileAttachment) => void;
   clearMessages: () => void;
   abortStreaming: () => void;
   retryLastMessage: () => void;
@@ -56,6 +58,8 @@ interface ChatContextValue {
   acceptTerms: () => void;
   declineTerms: () => void;
   showTerms: boolean;
+  fileAttachment: FileAttachment | null;
+  setFileAttachment: (file: FileAttachment | null) => void;
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);
@@ -104,6 +108,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   const [isExpanded, setIsExpanded] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [thinkingExpanded, setThinkingExpanded] = useState<ThinkingExpandedMap>({});
+  const [fileAttachment, setFileAttachment] = useState<FileAttachment | null>(null);
   
   // Terms and conditions state
   const [termsAccepted, setTermsAccepted] = useState(() => {
@@ -168,11 +173,12 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     }
   }, [messages, thinkingExpanded]);
 
-  const handleSend = (message: string) => {
+  const handleSend = (message: string, fileAttachment?: FileAttachment) => {
     if (message.trim() && termsAccepted) {
       console.log('ChatContext: Sending message:', message);
-      sendMessage(message);
+      sendMessage(message, fileAttachment);
       setInputValue('');
+      setFileAttachment(null);
       if (config?.widget.behavior.autoExpand) {
         setIsExpanded(true);
       }
@@ -241,7 +247,9 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     termsAccepted,
     acceptTerms,
     declineTerms,
-    showTerms
+    showTerms,
+    fileAttachment,
+    setFileAttachment
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
