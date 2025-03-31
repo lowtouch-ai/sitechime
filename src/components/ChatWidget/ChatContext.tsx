@@ -140,8 +140,9 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     endpoint: config?.security.api.endpoint,
     timeoutMs: config?.security.api.timeout,
     maxRetries: config?.security.authentication.maxRetries,
+    widgetConfig: config || undefined, // Pass the widget configuration to useChat
   });
-
+  
   // Log whenever messages change to help debug
   useEffect(() => {
     console.log('ChatContext received updated messages:', messages);

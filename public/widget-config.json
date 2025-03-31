@@ -56,9 +56,10 @@
       "maxConcurrentUsers": 100
     },
     "api": {
-      "endpoint": "http://127.0.0.1:8000/api/openai/v1/chat/completions",
+      "endpoint": "https://demo2025a.lowtouch.ai/api/chat/completions",
       "version": "v1",
-      "timeout": 300000
+      "timeout": 300000,
+      "model": "deepscaler:1.5b-preview-q4_K_M"
     }
   },
   "features": {

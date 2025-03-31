@@ -59,6 +59,7 @@ export interface WidgetConfig {
       endpoint: string;
       version: string;
       timeout: number;
+      model: string;
     };
   };
   features: {

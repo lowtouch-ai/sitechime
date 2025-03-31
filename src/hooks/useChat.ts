@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { sendChatMessage } from '../services/chatService';
+import { WidgetConfig } from '../types/widgetConfig';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -14,6 +15,7 @@ interface UseChatProps {
   endpoint?: string;
   timeoutMs?: number;
   maxRetries?: number;
+  widgetConfig?: WidgetConfig; // Adding widgetConfig parameter
 }
 
 // Generate a unique ID for messages
@@ -33,14 +35,15 @@ export const useChat = ({
   welcomeMessage,
   endpoint,
   timeoutMs = 30000,
-  maxRetries = 3
+  maxRetries = 3,
+  widgetConfig
 }: UseChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   // Keep a ref to the current messages to avoid dependency issues
   const messagesRef = useRef<Message[]>([]);
-  
+
   // Keep messagesRef in sync with messages state
   useEffect(() => {
     messagesRef.current = messages;
@@ -127,6 +130,7 @@ export const useChat = ({
           timeoutMs,
           maxRetries,
           signal: abortControllerRef.current.signal,
+          widgetConfig, // Pass the widget configuration to the chat service
         }
       );
       

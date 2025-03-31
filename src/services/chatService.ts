@@ -9,6 +9,7 @@ interface ChatServiceConfig {
   timeoutMs?: number;
   maxRetries?: number;
   signal?: AbortSignal;
+  widgetConfig?: any; // Adding widgetConfig parameter
 }
 
 const DEFAULT_CONFIG: ChatServiceConfig = {
@@ -35,6 +36,9 @@ export const sendChatMessage = async (
         ? AbortSignal.any([mergedConfig.signal, timeoutSignal])
         : timeoutSignal;
 
+      // Get the model from the widget config or use default fallback
+      const modelName = mergedConfig.widgetConfig?.security?.api?.model || 'deepscaler:1.5b-preview-q4_K_M';
+      
       const response = await fetch(mergedConfig.endpoint!, {
         method: 'POST',
         headers: {
@@ -43,7 +47,7 @@ export const sendChatMessage = async (
           'X-Config-Key': `${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'deepscaler:1.5b-preview-q4_K_M',
+          model: modelName,
           messages,
           stream: Boolean(onChunk),
         } as ChatCompletionRequest),
