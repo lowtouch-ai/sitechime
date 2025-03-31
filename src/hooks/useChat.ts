@@ -19,14 +19,6 @@ interface UseChatProps {
 // Generate a unique ID for messages
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
-// FOR TESTING: Add an example message with thinking tokens
-const EXAMPLE_THINKING_MESSAGE = `I'll help you solve this problem. <think>
-First, let me work through this step by step:
-1. We need to identify the core issue
-2. Research possible solutions
-3. Evaluate the best approach
-4. Implement the solution
-</think> Based on my analysis, here's what you should do.`;
 
 export const useChat = ({ 
   apiKey, 
