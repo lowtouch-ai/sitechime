@@ -5,7 +5,8 @@ export default defineConfig({
   plugins: [react()],
   define: {
     'process.env': {
-      NODE_ENV: JSON.stringify(process.env.NODE_ENV)
+      NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+      VITE_BACKEND_API_URL: JSON.stringify(process.env.VITE_BACKEND_API_URL),
     }
   },
   css: {
