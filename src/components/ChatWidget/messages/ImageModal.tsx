@@ -7,9 +7,14 @@ import { createPortal } from 'react-dom';
 interface ImageModalProps {
   imageUrl: string;
   onClose: () => void;
+  imageTitle?: string;
 }
 
-export const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, onClose }) => {
+export const ImageModal: React.FC<ImageModalProps> = ({ 
+  imageUrl, 
+  onClose,
+  imageTitle = 'Image'
+}) => {
   // Add a class to the body to prevent scrolling when modal is open
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -26,8 +31,13 @@ export const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, onClose }) => 
     const link = document.createElement('a');
     link.href = imageUrl;
     
-    // Extract filename from URL or use a default name
-    const filename = imageUrl.split('/').pop() || 'downloaded-image.png';
+    // Use the image title for the filename, sanitize it and add extension
+    const extension = imageUrl.split('.').pop()?.toLowerCase() || 'png';
+    const sanitizedTitle = imageTitle
+      .replace(/[^a-z0-9\s]/gi, '') // Remove special characters
+      .replace(/\s+/g, '_'); // Replace spaces with underscores
+    
+    const filename = `${sanitizedTitle}.${extension}`;
     link.download = filename;
     
     // Append to the document, click, and remove
@@ -51,12 +61,12 @@ export const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, onClose }) => 
       }}
     >
       <div 
-        className="relative w-full h-full flex items-center justify-center p-4"
+        className="relative w-full h-full flex flex-col items-center justify-center p-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="absolute top-4 right-4 flex space-x-2 z-20">
           <button 
-            className="bg-white rounded-full p-2 shadow-md hover:bg-gray-200 transition-colors"
+            className="bg-black blacked-full p-2 shadow-md hover:bg-gray-400 tr4nsition-colors"
             onClick={handleDownload}
             aria-label="Download image"
             title="Download image"
@@ -64,7 +74,7 @@ export const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, onClose }) => 
             <ArrowDownTrayIcon className="h-6 w-6" />
           </button>
           <button 
-            className="bg-white rounded-full p-2 shadow-md hover:bg-gray-200 transition-colors"
+            className="bg-black rounded-full p-2 shadow-md hover:bg-gray-400 transition-colors"
             onClick={onClose}
             aria-label="Close enlarged image"
             title="Close"
@@ -73,15 +83,21 @@ export const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, onClose }) => 
           </button>
         </div>
         
-        <div className="max-w-[90%] max-h-[90%]">
+        <div className="max-w-[90%] max-h-[90%] flex flex-col items-center">
           <Zoom>
             <img 
               src={imageUrl} 
-              alt="Enlarged view" 
-              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+              alt={imageTitle} 
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
               style={{ margin: '0 auto' }}
             />
           </Zoom>
+          
+          {imageTitle && (
+            <div className="mt-4 bg-white px-4 py-2 rounded-lg shadow-lg text-center max-w-full">
+              <h3 className="font-medium text-lg text-gray-800">{imageTitle}</h3>
+            </div>
+          )}
         </div>
       </div>
     </div>,

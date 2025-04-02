@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
+import { DocumentIcon, FolderIcon } from '@heroicons/react/24/outline';
 import { ChatTheme } from '../types';
 import { ThinkingSection } from './ThinkingSection';
 import { FileAttachment, RAGFile } from '../../../types/chat';
-import { MessageAuthor } from './MessageAuthor';
-import { MessageContent } from './MessageContent';
-import { RagFilesList } from './RagFilesList';
+import { useChatContext } from '../ChatContext';
 import { ImageModal } from './ImageModal';
+import { MessageAuthor } from './MessageAuthor';
+import { RagFilesList } from './RagFilesList';
+import { MessageContent } from './MessageContent';
 
 interface ChatMessageProps {
   content: string;
@@ -30,6 +32,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   ragFiles
 }) => {
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
+  const [imageTitle, setImageTitle] = useState<string>('Image');
   
   // Process message content to extract thinking tokens
   const processMessageContent = (content: string) => {
@@ -57,6 +60,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
       thinkingContent,
       inProgressThinking: false
     };
+  };
+
+  // Handler for image clicks
+  const handleImageClick = (url: string, title?: string) => {
+    setEnlargedImage(url);
+    setImageTitle(title || 'Image');
   };
 
   const { regularContent, thinkingContent, inProgressThinking } = processMessageContent(content);
@@ -93,7 +102,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           content={regularContent || ' '} 
           role={role} 
           theme={theme}
-          onImageClick={setEnlargedImage}
+          onImageClick={handleImageClick}
         />
         
         {ragFiles && ragFiles.length > 0 && role === 'user' && (
@@ -109,6 +118,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
       {enlargedImage && (
         <ImageModal 
           imageUrl={enlargedImage} 
+          imageTitle={imageTitle}
           onClose={() => setEnlargedImage(null)} 
         />
       )}
