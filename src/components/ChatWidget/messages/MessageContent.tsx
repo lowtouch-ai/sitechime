@@ -12,7 +12,6 @@ interface MessageContentProps {
 export const MessageContent: React.FC<MessageContentProps> = ({
   content,
   role,
-  theme,
   onImageClick
 }) => {
   const { config } = useChatContext();
@@ -27,6 +26,9 @@ export const MessageContent: React.FC<MessageContentProps> = ({
     return html.replace(
       /(!\[.*?\]\()?(\/?static\/.*?\.(png|jpg|jpeg|gif|svg|webp))(\))?/gi, 
       (match, mdPrefix, url, ext, mdSuffix) => {
+
+        match
+        ext
         // Clean the URL (remove leading slash if present)
         const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
         const fullUrl = `${apiHost}/api/openai/${cleanUrl}`;
@@ -49,6 +51,8 @@ export const MessageContent: React.FC<MessageContentProps> = ({
     // Preprocess the content to handle markdown image syntax
     const parts: React.ReactNode[] = [];
     let processedContent = content;
+
+    processedContent
     
     // Process markdown image tags: ![title](url)
     const mdImageRegex = /!\[(.*?)\]\((\/static\/.*?\.(png|jpg|jpeg|gif|svg|webp))\)/gi;

@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { DocumentIcon, FolderIcon } from '@heroicons/react/24/outline';
 import { ChatTheme } from '../types';
 import { ThinkingSection } from './ThinkingSection';
 import { FileAttachment, RAGFile } from '../../../types/chat';
-import { useChatContext } from '../ChatContext';
 import { ImageModal } from './ImageModal';
 import { MessageAuthor } from './MessageAuthor';
 import { RagFilesList } from './RagFilesList';
