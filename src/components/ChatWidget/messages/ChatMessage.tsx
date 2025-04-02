@@ -1,6 +1,8 @@
 import React from 'react';
+import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { ChatTheme } from '../types';
 import { ThinkingSection } from './ThinkingSection';
+import { FileAttachment } from '../../../types/chat';
 
 interface ChatMessageProps {
   content: string;
@@ -10,6 +12,7 @@ interface ChatMessageProps {
   theme: ChatTheme;
   thinkingExpanded: boolean;
   onToggleThinking: () => void;
+  fileAttachment?: FileAttachment;
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({
@@ -19,7 +22,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   botAvatarUrl,
   theme,
   thinkingExpanded,
-  onToggleThinking
+  onToggleThinking,
+  fileAttachment
 }) => {
   // Process message content to extract thinking tokens
   const processMessageContent = (content: string) => {
@@ -102,6 +106,21 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         data-testid="message-content"
       >
         {regularContent || ' '}
+        
+        {fileAttachment && role === 'user' && (
+          <div className={`file-attachment mt-2 flex ${role === 'user' ? 'justify-end' : 'justify-start'} items-center`}>
+            <div 
+              className="bg-white rounded-md px-2 py-1 flex items-center gap-1 text-xs"
+              style={{
+                border: `1px solid ${theme.border}`,
+                color: theme.text,
+              }}
+            >
+              <DocumentTextIcon className="h-3 w-3" />
+              <span className="font-medium">{fileAttachment.name}</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
