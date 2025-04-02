@@ -22,10 +22,21 @@ const COMPLETIONS_API_PATH = '/api/openai/api/chat/completions';
 // Default model to use if not specified in config
 const DEFAULT_MODEL = 'webshop:0.5';
 
+// Global configUrl that can be set by the application
+let _configUrl: string = '/widget-config.json'; // Default fallback value
+
+/**
+ * Set the configuration URL to be used by the chat service
+ * @param configUrl - The URL to fetch widget configuration from
+ */
+export const setConfigUrl = (configUrl: string): void => {
+  _configUrl = configUrl;
+};
+
 // Helper function to get the full completions URL and model from config
 const getCompletionsConfig = async (): Promise<{ url: string, model: string }> => {
   try {
-    const config = await fetchWidgetConfig('/widget-config.json');
+    const config = await fetchWidgetConfig(_configUrl);
     const url = `${config.security.api.host}${COMPLETIONS_API_PATH}`;
     
     // Check if model name is in the config - looking in security.api section

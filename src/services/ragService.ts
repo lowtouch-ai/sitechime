@@ -12,10 +12,21 @@ import { fetchWidgetConfig } from './configService';
 // Hard-coded RAG API endpoint path
 const RAG_API_PATH = '/api/openai/api/v1';
 
+// Global configUrl that can be set by the application
+let _configUrl: string = '/widget-config.json'; // Default fallback value
+
+/**
+ * Set the configuration URL to be used by the RAG service
+ * @param configUrl - The URL to fetch widget configuration from
+ */
+export const setConfigUrl = (configUrl: string): void => {
+  _configUrl = configUrl;
+};
+
 // Helper function to get the base API URL from the config
 const getBaseApiUrl = async (): Promise<string> => {
   try {
-    const config = await fetchWidgetConfig('/widget-config.json');
+    const config = await fetchWidgetConfig(_configUrl);
     return `${config.security.api.host}${RAG_API_PATH}`;
   } catch (error) {
     console.error('Error loading API configuration:', error);

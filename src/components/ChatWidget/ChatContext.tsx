@@ -3,6 +3,9 @@ import { useChat } from '../../hooks/useChat';
 import { fetchWidgetConfig } from '../../services/configService';
 import type { WidgetConfig } from '../../types/widgetConfig';
 import { FileAttachment, RAGFile } from '../../types/chat';
+// Import the new setConfigUrl functions
+import { setConfigUrl as setRagConfigUrl } from '../../services/ragService';
+import { setConfigUrl as setChatConfigUrl } from '../../services/chatService';
 
 // Updated Message interface matching useChat.ts
 interface Message {
@@ -127,6 +130,13 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     return localStorage.getItem(TERMS_ACCEPTED_KEY) === 'true';
   });
   const [showTerms, setShowTerms] = useState(false);
+
+  // Configure services with the configUrl when component mounts
+  useEffect(() => {
+    // Set the configUrl for both services
+    setRagConfigUrl(configUrl);
+    setChatConfigUrl(configUrl);
+  }, [configUrl]);
 
   useEffect(() => {
     const loadConfig = async () => {
