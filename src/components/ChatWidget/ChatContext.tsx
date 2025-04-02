@@ -10,6 +10,7 @@ interface Message {
   content: string;
   id?: string;
   fileAttachment?: FileAttachment;
+  ragFiles?: RAGFile[]; // Add ragFiles property to fix the error
 }
 
 interface ChatContextProps {
@@ -35,7 +36,7 @@ interface ChatContextValue {
   setIsExpanded: (value: boolean) => void;
   messages: Message[];
   isLoading: boolean;
-  sendMessage: (message: string, fileAttachment?: FileAttachment) => void;
+  sendMessage: (message: string, fileAttachment?: FileAttachment, ragFiles?: RAGFile[]) => void;
   clearMessages: () => void;
   abortStreaming: () => void;
   retryLastMessage: () => void;
@@ -66,6 +67,7 @@ interface ChatContextValue {
   removeRagFile: (fileId: string) => void;
   uploadingFile: boolean;
   uploadError: string | null;
+  apiKey: string; // Add this property to fix the error
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);
@@ -285,7 +287,8 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     addRagFile,
     removeRagFile,
     uploadingFile,
-    uploadError
+    uploadError,
+    apiKey // Add apiKey to the value object
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
