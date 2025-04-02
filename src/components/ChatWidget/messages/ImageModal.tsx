@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { XMarkIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import Zoom from 'react-medium-image-zoom';
 import 'react-medium-image-zoom/dist/styles.css';
+import { createPortal } from 'react-dom';
 
 interface ImageModalProps {
   imageUrl: string;
@@ -9,6 +10,14 @@ interface ImageModalProps {
 }
 
 export const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, onClose }) => {
+  // Add a class to the body to prevent scrolling when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   // Function to handle image download
   const handleDownload = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -27,16 +36,18 @@ export const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, onClose }) => 
     document.body.removeChild(link);
   };
 
-  return (
+  // Use a portal to render the modal directly in the document body
+  return createPortal(
     <div 
-      className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[10000]"
+      className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center"
       onClick={onClose}
       style={{ 
         width: '100vw', 
         height: '100vh',
         position: 'fixed',
         top: 0,
-        left: 0
+        left: 0,
+        zIndex: 999999 // Extremely high z-index to ensure it's above everything
       }}
     >
       <div 
@@ -73,6 +84,7 @@ export const ImageModal: React.FC<ImageModalProps> = ({ imageUrl, onClose }) => 
           </Zoom>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
