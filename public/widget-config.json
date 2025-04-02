@@ -53,7 +53,8 @@
     "api": {
       "host": "http://127.0.0.1:8000",
       "version": "v1",
-      "timeout": 300000
+      "timeout": 300000,
+      "model": "webshop:0.5"
     }
   },
   "features": {

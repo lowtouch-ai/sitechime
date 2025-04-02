@@ -19,20 +19,32 @@ import { fetchWidgetConfig } from './configService';
 // Hard-coded completions endpoint path
 const COMPLETIONS_API_PATH = '/api/openai/api/chat/completions';
 
-// Helper function to get the full completions URL from config
-const getCompletionsUrl = async (): Promise<string> => {
+// Default model to use if not specified in config
+const DEFAULT_MODEL = 'webshop:0.5';
+
+// Helper function to get the full completions URL and model from config
+const getCompletionsConfig = async (): Promise<{ url: string, model: string }> => {
   try {
     const config = await fetchWidgetConfig('/widget-config.json');
-    return `${config.security.api.host}${COMPLETIONS_API_PATH}`;
+    const url = `${config.security.api.host}${COMPLETIONS_API_PATH}`;
+    
+    // Check if model name is in the config - looking in security.api section
+    // This is a flexible approach that will work even if model is added later
+    const model = (config.security.api as any).model || DEFAULT_MODEL;
+    
+    return { url, model };
   } catch (error) {
     console.error('Error loading API configuration:', error);
-    // Fallback to a default URL if configuration can't be loaded
-    return 'https://api.openai.com/v1/chat/completions';
+    // Fallback to defaults if configuration can't be loaded
+    return { 
+      url: 'https://api.openai.com/v1/chat/completions',
+      model: DEFAULT_MODEL
+    };
   }
 };
 
 const DEFAULT_CONFIG: ChatServiceConfig = {
-  endpoint: 'https://api.openai.com/v1/chat/completions', // This will be overridden by getCompletionsUrl
+  endpoint: 'https://api.openai.com/v1/chat/completions', // This will be overridden by getCompletionsConfig
   timeoutMs: 30000,
   maxRetries: 3,
 };
@@ -48,7 +60,8 @@ export const sendChatMessage = async (
   // Get dynamic endpoint from config if not explicitly provided
   if (!config.endpoint) {
     try {
-      config.endpoint = await getCompletionsUrl();
+      const { url, model } = await getCompletionsConfig();
+      config.endpoint = url;
       console.log('Using dynamic endpoint from config:', config.endpoint);
     } catch (error) {
       console.warn('Failed to get dynamic endpoint, using default');
@@ -66,6 +79,10 @@ export const sendChatMessage = async (
         ? AbortSignal.any([mergedConfig.signal, timeoutSignal])
         : timeoutSignal;
 
+      // Get the model name from configuration
+      const { model } = await getCompletionsConfig();
+      console.log('Using model from config:', model);
+
       const response = await fetch(mergedConfig.endpoint!, {
         method: 'POST',
         headers: {
@@ -74,7 +91,7 @@ export const sendChatMessage = async (
           'X-Config-Key': `${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'webshop:0.5',
+          model: model, // Use model from config instead of hardcoded value
           messages,
           stream: Boolean(onChunk),
           files: mergedConfig.ragFiles
