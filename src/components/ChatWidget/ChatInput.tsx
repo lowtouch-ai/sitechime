@@ -1,7 +1,6 @@
 import React, { useRef, KeyboardEvent, useState, ChangeEvent } from 'react';
 import { PaperAirplaneIcon, StopIcon, PaperClipIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { useChatContext } from './ChatContext';
-import { FileAttachment, RAGFile } from '../../types/chat';
 import { uploadFile } from '../../services/ragService';
 
 export const ChatInput: React.FC = () => {
@@ -22,7 +21,7 @@ export const ChatInput: React.FC = () => {
     ragFiles,
     addRagFile,
     removeRagFile,
-    uploadingFile,
+    // uploadingFile,
     uploadError
   } = useChatContext();
   

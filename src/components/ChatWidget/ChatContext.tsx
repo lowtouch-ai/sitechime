@@ -121,7 +121,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   
   // RAG file state
   const [ragFiles, setRagFiles] = useState<RAGFile[]>([]);
-  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadingFile] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   
   // Terms and conditions state
