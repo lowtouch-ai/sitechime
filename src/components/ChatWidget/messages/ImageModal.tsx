@@ -24,29 +24,43 @@ export const ImageModal: React.FC<ImageModalProps> = ({
   }, []);
 
   // Function to handle image download
-  const handleDownload = (e: React.MouseEvent) => {
+  const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Create a link element
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.target = '_blank'; // Open in new tab if it does navigate
-    link.rel = 'noopener noreferrer';
-    
-    // Use the image title for the filename, sanitize it and add extension
-    const extension = imageUrl.split('.').pop()?.toLowerCase() || 'png';
-    const sanitizedTitle = imageTitle
-      .replace(/[^a-z0-9\s]/gi, '') // Remove special characters
-      .replace(/\s+/g, '_'); // Replace spaces with underscores
-    
-    const filename = `${sanitizedTitle}.${extension}`;
-    link.download = filename;
-    
-    // Append to the document, click, and remove
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      // Fetch the image data
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      // Create a blob URL for the image data
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // Create a link element
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      
+      // Use the image title for the filename, sanitize it and add extension
+      const extension = imageUrl.split('.').pop()?.toLowerCase() || 'png';
+      const sanitizedTitle = imageTitle
+        .replace(/[^a-z0-9\s]/gi, '') // Remove special characters
+        .replace(/\s+/g, '_'); // Replace spaces with underscores
+      
+      const filename = `${sanitizedTitle}.${extension}`;
+      link.download = filename;
+      
+      // Append to the document, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      // Fallback to the old method if fetch fails
+      window.open(imageUrl, '_blank');
+    }
   };
 
   // Use a portal to render the modal directly in the document body
