@@ -202,7 +202,7 @@ export const ChatInput: React.FC = () => {
               style={{ backgroundColor: theme.surface }}
             >
               <div className="flex items-center">
-                <span className="text-xs font-medium truncate max-w-[200px]">
+                <span className="text-xs text-gray-500 font-medium truncate max-w-[200px]">
                   {file.name || file.id}
                 </span>
                 <span className="text-xs text-gray-500 ml-1">
@@ -212,7 +212,7 @@ export const ChatInput: React.FC = () => {
               <button
                 type="button"
                 onClick={() => removeFile(file.id)}
-                className="text-gray-500 hover:text-gray-700 ml-2"
+                className="text-black bg-transparent hover:text-gray-700 ml-2 rounded-full p-1"
                 aria-label="Remove file"
               >
                 <XMarkIcon className="h-4 w-4" />
@@ -247,7 +247,7 @@ export const ChatInput: React.FC = () => {
         {fileUploadEnabled && (
           <button  
             type="button"
-            className="absolute right-12 p-2 rounded-full hover:opacity-80 transition-all"
+            className="absolute right-12 p-2 rounded-full hover:opacity-80 transition-all bg-transparent text-black"
             onClick={handleFileClick}
             disabled={isInputDisabled}
             aria-label="Attach file"
