@@ -1,5 +1,5 @@
 import React from 'react';
-import { DocumentTextIcon, DocumentIcon, FolderIcon } from '@heroicons/react/24/outline';
+import { DocumentIcon, FolderIcon } from '@heroicons/react/24/outline';
 import { ChatTheme } from '../types';
 import { ThinkingSection } from './ThinkingSection';
 import { FileAttachment, RAGFile } from '../../../types/chat';
@@ -24,7 +24,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   theme,
   thinkingExpanded,
   onToggleThinking,
-  fileAttachment,
   ragFiles
 }) => {
   // Process message content to extract thinking tokens

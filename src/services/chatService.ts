@@ -60,7 +60,7 @@ export const sendChatMessage = async (
   // Get dynamic endpoint from config if not explicitly provided
   if (!config.endpoint) {
     try {
-      const { url, model } = await getCompletionsConfig();
+      const { url } = await getCompletionsConfig();
       config.endpoint = url;
       console.log('Using dynamic endpoint from config:', config.endpoint);
     } catch (error) {

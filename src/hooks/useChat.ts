@@ -98,7 +98,7 @@ export const useChat = ({
       await new Promise(resolve => setTimeout(resolve, 0));
       
       // Prepare chat messages for API, including file content if available
-      const apiMessages = currentMessages.slice(0, -1).map(({role, content, fileAttachment}) => {
+      const apiMessages = currentMessages.slice(0, -1).map(({role, content}) => {
         // If this is a user message with a file attachment, include the file content
         // if (role === 'user' && fileAttachment) {
         //   return {
