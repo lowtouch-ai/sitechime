@@ -25,11 +25,14 @@ export const ImageModal: React.FC<ImageModalProps> = ({
 
   // Function to handle image download
   const handleDownload = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     
     // Create a link element
     const link = document.createElement('a');
     link.href = imageUrl;
+    link.target = '_blank'; // Open in new tab if it does navigate
+    link.rel = 'noopener noreferrer';
     
     // Use the image title for the filename, sanitize it and add extension
     const extension = imageUrl.split('.').pop()?.toLowerCase() || 'png';
