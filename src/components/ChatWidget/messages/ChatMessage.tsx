@@ -109,21 +109,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
       >
         {regularContent || ' '}
         
-        {fileAttachment && role === 'user' && (
-          <div className={`file-attachment mt-2 flex ${role === 'user' ? 'justify-end' : 'justify-start'} items-center`}>
-            <div 
-              className="bg-white rounded-md px-2 py-1 flex items-center gap-1 text-xs"
-              style={{
-                border: `1px solid ${theme.border}`,
-                color: theme.text,
-              }}
-            >
-              <DocumentTextIcon className="h-3 w-3" />
-              <span className="font-medium">{fileAttachment.name}</span>
-            </div>
-          </div>
-        )}
-        
         {ragFiles && ragFiles.length > 0 && role === 'user' && (
           <div className={`rag-files mt-2 flex flex-wrap ${role === 'user' ? 'justify-end' : 'justify-start'} gap-1`}>
             {ragFiles.map((file) => (
