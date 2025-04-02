@@ -21,6 +21,7 @@ export const ChatInput: React.FC = () => {
     ragFiles,
     addRagFile,
     removeRagFile,
+    // Remove this unused variable to fix the TypeScript error
     // uploadingFile,
     uploadError
   } = useChatContext();
@@ -118,12 +119,12 @@ export const ChatInput: React.FC = () => {
         return true;
       }
       
-      // Also check file extensions for common types
-      if (fileExtension === "txt") {
+      // Check specific extensions based on common patterns
+      if (type === "application/pdf" && fileExtension === "pdf") {
         return true;
       }
       
-      if (fileExtension === "pdf") {
+      if (type === "text/plain" && fileExtension === "txt") {
         return true;
       }
       
@@ -131,7 +132,10 @@ export const ChatInput: React.FC = () => {
     });
     
     if (!isAllowed) {
-      setFileError("File type not allowed. Supported types include PDF and text files.");
+      const allowedTypesMessage = allowedTypes
+        .map(type => type.endsWith('/*') ? type.replace('/*', ' files') : type)
+        .join(', ');
+      setFileError(`File type not allowed. Supported types: ${allowedTypesMessage}`);
       return;
     }
     
@@ -256,7 +260,7 @@ export const ChatInput: React.FC = () => {
               ref={fileInputRef}
               onChange={handleFileChange}
               className="hidden"
-              accept=".txt,.pdf,application/pdf,text/plain"
+              accept={config?.features.fileUpload?.allowedTypes?.join(',') || ".txt,.pdf,application/pdf,text/plain"}
               disabled={isInputDisabled}
             />
           </button>

@@ -100,12 +100,12 @@ export const useChat = ({
       // Prepare chat messages for API, including file content if available
       const apiMessages = currentMessages.slice(0, -1).map(({role, content, fileAttachment}) => {
         // If this is a user message with a file attachment, include the file content
-        if (role === 'user' && fileAttachment) {
-          return {
-            role,
-            content: `${content}\n\nFile attached: ${fileAttachment.name}\n\nFile content: ${fileAttachment.content}`
-          };
-        }
+        // if (role === 'user' && fileAttachment) {
+        //   return {
+        //     role,
+        //     content: `${content}\n\nFile attached: ${fileAttachment.name}\n\nFile content: ${fileAttachment.content}`
+        //   };
+        // }
         return {role, content};
       });
       

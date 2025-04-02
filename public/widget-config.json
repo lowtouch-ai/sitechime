@@ -48,12 +48,7 @@
   },
   "security": {
     "authentication": {
-      "tokenRefreshInterval": 3600,
       "maxRetries": 3
-    },
-    "rateLimit": {
-      "requestsPerMinute": 60,
-      "maxConcurrentUsers": 100
     },
     "api": {
       "host": "http://127.0.0.1:8000",
@@ -66,14 +61,6 @@
       "enabled": true,
       "maxSize": 2,
       "allowedTypes": ["image/*", "application/pdf"]
-    },
-    "logging": {
-      "level": "error",
-      "retention": 7
-    },
-    "performance": {
-      "messageBuffer": 50,
-      "streamingBufferSize": 1024
     }
   }
 }

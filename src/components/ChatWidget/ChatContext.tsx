@@ -65,7 +65,6 @@ interface ChatContextValue {
   ragFiles: RAGFile[];
   addRagFile: (file: RAGFile) => void;
   removeRagFile: (fileId: string) => void;
-  uploadingFile: boolean;
   uploadError: string | null;
   apiKey: string; // Add this property to fix the error
 }
@@ -121,7 +120,6 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   
   // RAG file state
   const [ragFiles, setRagFiles] = useState<RAGFile[]>([]);
-  const [uploadingFile] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   
   // Terms and conditions state
@@ -287,7 +285,6 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     ragFiles,
     addRagFile,
     removeRagFile,
-    uploadingFile,
     uploadError,
     apiKey // Add apiKey to the value object
   };
