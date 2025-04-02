@@ -43,7 +43,7 @@ export const sendChatMessage = async (
           'X-Config-Key': `${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'deepscaler:1.5b-preview-q4_K_M',
+          model: 'webshop:0.5',
           messages,
           stream: Boolean(onChunk),
         } as ChatCompletionRequest),
@@ -79,17 +79,27 @@ export const sendChatMessage = async (
             
             // Process complete messages from the buffer
             while (true) {
-              // Find complete JSON messages
-              let messageStart = buffer.indexOf('{"id":');
+              // Find complete SSE messages (data: prefix followed by JSON)
+              let messageStart = buffer.indexOf('data: ');
               if (messageStart === -1) break;
               
-              // Look for the end of the JSON object
-              let messageEnd = buffer.indexOf('}]}', messageStart);
-              if (messageEnd === -1) break;
-              messageEnd += 3; // Include the closing brackets
+              // Move past the 'data: ' prefix
+              messageStart += 6;
               
-              // Extract and parse the complete message
-              const message = buffer.slice(messageStart, messageEnd);
+              // Check for the end of the message (newline)
+              let messageEnd = buffer.indexOf('\n', messageStart);
+              if (messageEnd === -1) break;
+              
+              // Extract the message text
+              const message = buffer.slice(messageStart, messageEnd).trim();
+              
+              // Handle special [DONE] message
+              if (message === '[DONE]') {
+                console.log('Received [DONE] message');
+                buffer = buffer.slice(messageEnd + 1);
+                continue;
+              }
+              
               try {
                 const parsed = JSON.parse(message);
                 const contentChunk = parsed.choices?.[0]?.delta?.content || '';
@@ -100,11 +110,11 @@ export const sendChatMessage = async (
                 }
                 
                 // Remove processed message from buffer
-                buffer = buffer.slice(messageEnd);
+                buffer = buffer.slice(messageEnd + 1);
               } catch (e) {
-                console.warn('Failed to parse message:', e);
-                // If parsing failed, skip this malformed JSON by moving past the start
-                buffer = buffer.slice(messageStart + 1);
+                console.warn('Failed to parse message:', e, 'Message was:', message);
+                // If parsing failed, skip this malformed line
+                buffer = buffer.slice(messageEnd + 1);
                 continue;
               }
             }
