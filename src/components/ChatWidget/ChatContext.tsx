@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { useChat } from '../../hooks/useChat';
 import { fetchWidgetConfig } from '../../services/configService';
 import type { WidgetConfig } from '../../types/widgetConfig';
-import { FileAttachment } from '../../types/chat';
+import { FileAttachment, RAGFile } from '../../types/chat';
 
 // Updated Message interface matching useChat.ts
 interface Message {
@@ -60,6 +60,12 @@ interface ChatContextValue {
   showTerms: boolean;
   fileAttachment: FileAttachment | null;
   setFileAttachment: (file: FileAttachment | null) => void;
+  // New RAG-related fields
+  ragFiles: RAGFile[];
+  addRagFile: (file: RAGFile) => void;
+  removeRagFile: (fileId: string) => void;
+  uploadingFile: boolean;
+  uploadError: string | null;
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);
@@ -110,6 +116,11 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   const [inputValue, setInputValue] = useState('');
   const [thinkingExpanded, setThinkingExpanded] = useState<ThinkingExpandedMap>({});
   const [fileAttachment, setFileAttachment] = useState<FileAttachment | null>(null);
+  
+  // RAG file state
+  const [ragFiles, setRagFiles] = useState<RAGFile[]>([]);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   
   // Terms and conditions state
   const [termsAccepted, setTermsAccepted] = useState(() => {
@@ -175,11 +186,19 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   }, [messages, thinkingExpanded]);
 
   const handleSend = (message: string, fileAttachment?: FileAttachment) => {
-    if (message.trim() && termsAccepted) {
+    if ((message.trim() || ragFiles.length > 0) && termsAccepted) {
       console.log('ChatContext: Sending message:', message);
-      sendMessage(message, fileAttachment);
+      console.log('ChatContext: With RAG files:', ragFiles);
+      
+      // Send message with both file attachment and RAG files
+      sendMessage(message, fileAttachment, ragFiles.length > 0 ? ragFiles : undefined);
+      
       setInputValue('');
       setFileAttachment(null);
+      
+      // Clear RAG files after sending
+      setRagFiles([]);
+      
       if (config?.widget.behavior.autoExpand) {
         setIsExpanded(true);
       }
@@ -213,6 +232,16 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
 
   const declineTerms = () => {
     setIsOpen(false);
+  };
+
+  // RAG file management functions
+  const addRagFile = (file: RAGFile) => {
+    setRagFiles(prev => [...prev, file]);
+    setUploadError(null);
+  };
+
+  const removeRagFile = (fileId: string) => {
+    setRagFiles(prev => prev.filter(file => file.id !== fileId));
   };
 
   const theme = {
@@ -250,7 +279,13 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     declineTerms,
     showTerms,
     fileAttachment,
-    setFileAttachment
+    setFileAttachment,
+    // Add RAG-related fields to the context value
+    ragFiles,
+    addRagFile,
+    removeRagFile,
+    uploadingFile,
+    uploadError
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

@@ -10,6 +10,21 @@ export interface FileAttachment {
   type: string;
 }
 
+// New RAG file types
+export interface RAGFile {
+  id: string;
+  type: 'file' | 'collection';
+  name?: string;
+}
+
+export interface RAGUploadResponse {
+  id: string;
+  filename: string;
+  size: number;
+  created_at: string;
+  status: string;
+}
+
 export interface ChatWidgetProps {
   apiKey: string;
   position?: 'bottom-right' | 'bottom-left';

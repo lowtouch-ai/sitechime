@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { sendChatMessage } from '../services/chatService';
-import { FileAttachment } from '../types/chat';
+import { FileAttachment, RAGFile } from '../types/chat';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -8,6 +8,7 @@ interface Message {
   // Add an id to force re-renders when content changes
   id?: string;
   fileAttachment?: FileAttachment;
+  ragFiles?: RAGFile[];
 }
 
 interface UseChatProps {
@@ -55,13 +56,16 @@ export const useChat = ({
   //   }
   // }, [welcomeMessage]);
 
-  const sendMessage = useCallback(async (content: string, fileAttachment?: FileAttachment) => {
+  const sendMessage = useCallback(async (content: string, fileAttachment?: FileAttachment, ragFiles?: RAGFile[]) => {
     console.log('sendMessage called with content:', content);
+    console.log('RAG files:', ragFiles);
+    
     const userMessage: Message = { 
       role: 'user', 
       content, 
       id: generateId(),
-      fileAttachment 
+      fileAttachment,
+      ragFiles
     };
     console.log('Adding user message:', userMessage);
     
@@ -138,6 +142,7 @@ export const useChat = ({
           timeoutMs,
           maxRetries,
           signal: abortControllerRef.current.signal,
+          ragFiles
         }
       );
       
@@ -209,9 +214,13 @@ export const useChat = ({
         });
       }
       
-      // Resend the last user message with its file attachment if any
+      // Resend the last user message with its file attachment and RAG files if any
       console.log('Retrying last message:', lastUserMessage.content);
-      sendMessage(lastUserMessage.content, lastUserMessage.fileAttachment);
+      sendMessage(
+        lastUserMessage.content, 
+        lastUserMessage.fileAttachment, 
+        lastUserMessage.ragFiles
+      );
     } else {
       console.warn('No user message found to retry');
     }

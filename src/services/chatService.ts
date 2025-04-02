@@ -2,6 +2,7 @@ interface ChatCompletionRequest {
   model: string;
   messages: Array<{ role: string; content: string }>;
   stream?: boolean;
+  files?: Array<{ type: 'file' | 'collection', id: string }>;
 }
 
 interface ChatServiceConfig {
@@ -9,6 +10,7 @@ interface ChatServiceConfig {
   timeoutMs?: number;
   maxRetries?: number;
   signal?: AbortSignal;
+  ragFiles?: Array<{ type: 'file' | 'collection', id: string }>;
 }
 
 const DEFAULT_CONFIG: ChatServiceConfig = {
@@ -46,6 +48,7 @@ export const sendChatMessage = async (
           model: 'webshop:0.5',
           messages,
           stream: Boolean(onChunk),
+          files: mergedConfig.ragFiles
         } as ChatCompletionRequest),
         signal,
       });

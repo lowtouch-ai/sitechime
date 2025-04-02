@@ -1,7 +1,8 @@
 import React, { useRef, KeyboardEvent, useState, ChangeEvent } from 'react';
 import { PaperAirplaneIcon, StopIcon, PaperClipIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { useChatContext } from './ChatContext';
-import { FileAttachment } from '../../types/chat';
+import { FileAttachment, RAGFile } from '../../types/chat';
+import { uploadFile } from '../../services/ragService';
 
 export const ChatInput: React.FC = () => {
   const { 
@@ -14,13 +15,21 @@ export const ChatInput: React.FC = () => {
     termsAccepted,
     showTerms,
     config,
-    fileAttachment,
-    setFileAttachment
+    apiKey,
+    // Remove fileAttachment in favor of ragFiles
+    // fileAttachment,
+    // setFileAttachment,
+    ragFiles,
+    addRagFile,
+    removeRagFile,
+    uploadingFile,
+    uploadError
   } = useChatContext();
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleSend = () => {
     if (isLoading) {
@@ -28,8 +37,20 @@ export const ChatInput: React.FC = () => {
       return;
     }
 
-    if ((inputValue.trim() || fileAttachment) && termsAccepted) {
-      sendMessage(inputValue, fileAttachment ?? undefined);
+    if ((inputValue.trim() || ragFiles.length > 0) && termsAccepted) {
+      // Send the message with the RAG files
+      sendMessage(
+        inputValue, 
+        ragFiles.length > 0 
+          ? { 
+              name: ragFiles.map(file => file.name).join(', '), 
+              content: ragFiles.map(file => file.name).join('\n'), 
+              type: 'file' 
+            } 
+          : undefined
+      );
+      setInputValue('');
+      
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -57,7 +78,7 @@ export const ChatInput: React.FC = () => {
     }
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     setFileError(null);
     
     const files = e.target.files;
@@ -115,83 +136,84 @@ export const ChatInput: React.FC = () => {
       return;
     }
     
-    // Read file content
-    const reader = new FileReader();
-    
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        const fileAttachment: FileAttachment = {
-          name: file.name,
-          type: file.type,
-          content: event.target.result as string
-        };
-        
-        setFileAttachment(fileAttachment);
+    // Upload the file using RAG API
+    try {
+      setIsUploading(true);
+      const response = await uploadFile(file, apiKey);
+      
+      // Add the uploaded file to the RAG files list
+      addRagFile({
+        id: response.id,
+        type: 'file',
+        name: file.name
+      });
+      
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
-    };
-    
-    reader.onerror = () => {
-      setFileError("Error reading file.");
-    };
-    
-    // If it's a text file or PDF, read as text
-    if (file.type === "text/plain" || file.type === "application/pdf") {
-      reader.readAsText(file);
-    } else {
-      // For other file types, just store the name (or could use readAsDataURL for images)
-      setFileError("Only text and PDF files are currently supported for content extraction.");
-      return;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      setFileError(error instanceof Error ? error.message : 'Failed to upload file');
+    } finally {
+      setIsUploading(false);
     }
   };
   
-  const removeFile = () => {
-    setFileAttachment(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    setFileError(null);
+  const removeFile = (fileId: string) => {
+    removeRagFile(fileId);
   };
 
   // Determine if input should be disabled
-  const isInputDisabled = isLoading || showTerms;
+  const isInputDisabled = isLoading || showTerms || isUploading;
   
   // Message to show in the placeholder depending on terms acceptance
   const placeholderText = !termsAccepted && showTerms 
     ? "Please accept terms and conditions to chat..." 
-    : "Type your message...";
+    : isUploading 
+      ? "Uploading file..." 
+      : "Type your message...";
 
   // Check if file upload is enabled in config
   const fileUploadEnabled = config?.features.fileUpload?.enabled !== false;
 
   return (
     <div className="border-t p-4" style={{ borderColor: theme.border }}>
-      {fileError && (
+      {(fileError || uploadError) && (
         <div 
           className="text-xs text-red-500 mb-2 px-1"
           role="alert"
         >
-          {fileError}
+          {fileError || uploadError}
         </div>
       )}
       
-      {fileAttachment && (
-        <div 
-          className="flex items-center justify-between mb-2 px-3 py-2 bg-gray-100 rounded-lg"
-          style={{ backgroundColor: theme.surface }}
-        >
-          <div className="flex items-center">
-            <span className="text-xs font-medium truncate max-w-[200px]">
-              {fileAttachment.name}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={removeFile}
-            className="text-gray-500 hover:text-gray-700 ml-2"
-            aria-label="Remove file"
-          >
-            <XMarkIcon className="h-4 w-4" />
-          </button>
+      {ragFiles.length > 0 && (
+        <div className="mb-2">
+          {ragFiles.map(file => (
+            <div 
+              key={file.id}
+              className="flex items-center justify-between mb-1 px-3 py-2 bg-gray-100 rounded-lg"
+              style={{ backgroundColor: theme.surface }}
+            >
+              <div className="flex items-center">
+                <span className="text-xs font-medium truncate max-w-[200px]">
+                  {file.name || file.id}
+                </span>
+                <span className="text-xs text-gray-500 ml-1">
+                  ({file.type})
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => removeFile(file.id)}
+                className="text-gray-500 hover:text-gray-700 ml-2"
+                aria-label="Remove file"
+              >
+                <XMarkIcon className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
         </div>
       )}
       
@@ -244,10 +266,10 @@ export const ChatInput: React.FC = () => {
         <button
           className="absolute right-2 p-2 rounded-full hover:opacity-80 transition-all"
           style={{ 
-            backgroundColor: (isLoading || ((inputValue.trim() || fileAttachment) && termsAccepted)) 
+            backgroundColor: (isLoading || ((inputValue.trim() || ragFiles.length > 0) && termsAccepted)) 
               ? theme.primary 
               : 'transparent',
-            color: (isLoading || ((inputValue.trim() || fileAttachment) && termsAccepted)) 
+            color: (isLoading || ((inputValue.trim() || ragFiles.length > 0) && termsAccepted)) 
               ? theme.secondary 
               : theme.text,
             opacity: isInputDisabled ? 0.6 : 1
