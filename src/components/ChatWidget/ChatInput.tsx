@@ -182,7 +182,8 @@ export const ChatInput: React.FC = () => {
 
   return (
     <div className="border-t p-4" style={{ borderColor: theme.border }}>
-      {(fileError || uploadError) && (
+      {/* Only show file errors when file upload is enabled */}
+      {fileUploadEnabled && (fileError || uploadError) && (
         <div 
           className="text-xs text-red-500 mb-2 px-1"
           role="alert"
@@ -191,7 +192,8 @@ export const ChatInput: React.FC = () => {
         </div>
       )}
       
-      {ragFiles.length > 0 && (
+      {/* Only show file attachments when file upload is enabled */}
+      {fileUploadEnabled && ragFiles.length > 0 && (
         <div className="mb-2">
           {ragFiles.map(file => (
             <div 
@@ -243,14 +245,14 @@ export const ChatInput: React.FC = () => {
         />
         
         {fileUploadEnabled && (
-          <button 
+          <button  
             type="button"
-            className="absolute right-12 p-2 rounded-full hover:bg-gray-100 transition-all"
+            className="absolute right-12 p-2 rounded-full hover:opacity-80 transition-all"
             onClick={handleFileClick}
             disabled={isInputDisabled}
             aria-label="Attach file"
             style={{ 
-              color: theme.text,
+              // color: theme.text,
               opacity: isInputDisabled ? 0.6 : 1
             }}
           >

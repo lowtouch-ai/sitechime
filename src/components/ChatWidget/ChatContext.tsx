@@ -142,6 +142,12 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
         
         // Show terms only if enabled in config and not previously accepted
         setShowTerms(widgetConfig.widget.terms?.enabled !== false && !termsAccepted);
+        
+        // Clear any existing RAG files if file upload is disabled
+        if (widgetConfig.features.fileUpload?.enabled === false) {
+          setRagFiles([]);
+          setFileAttachment(null);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load configuration');
         console.error('Failed to load widget configuration:', err);
