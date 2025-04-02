@@ -156,7 +156,8 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   const { messages, isLoading, sendMessage, clearMessages, abortStreaming, retryLastMessage } = useChat({
     apiKey,
     welcomeMessage: config?.branding.poweredBy.text || welcomeMessage,
-    endpoint: config?.security.api.endpoint,
+    // Use the host + completions path instead of endpoint
+    endpoint: config?.security.api.host ? `${config.security.api.host}/api/openai/api/chat/completions` : undefined,
     timeoutMs: config?.security.api.timeout,
     maxRetries: config?.security.authentication.maxRetries,
   });

@@ -56,7 +56,7 @@
       "maxConcurrentUsers": 100
     },
     "api": {
-      "endpoint": "http://127.0.0.1:8000/api/openai/api/chat/completions",
+      "host": "http://127.0.0.1:8000",
       "version": "v1",
       "timeout": 300000
     }

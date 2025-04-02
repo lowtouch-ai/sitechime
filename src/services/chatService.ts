@@ -13,8 +13,26 @@ interface ChatServiceConfig {
   ragFiles?: Array<{ type: 'file' | 'collection', id: string }>;
 }
 
+// Import the fetchWidgetConfig function
+import { fetchWidgetConfig } from './configService';
+
+// Hard-coded completions endpoint path
+const COMPLETIONS_API_PATH = '/api/openai/api/chat/completions';
+
+// Helper function to get the full completions URL from config
+const getCompletionsUrl = async (): Promise<string> => {
+  try {
+    const config = await fetchWidgetConfig('/widget-config.json');
+    return `${config.security.api.host}${COMPLETIONS_API_PATH}`;
+  } catch (error) {
+    console.error('Error loading API configuration:', error);
+    // Fallback to a default URL if configuration can't be loaded
+    return 'https://api.openai.com/v1/chat/completions';
+  }
+};
+
 const DEFAULT_CONFIG: ChatServiceConfig = {
-  endpoint: 'https://api.openai.com/v1/chat/completions',
+  endpoint: 'https://api.openai.com/v1/chat/completions', // This will be overridden by getCompletionsUrl
   timeoutMs: 30000,
   maxRetries: 3,
 };
@@ -26,6 +44,17 @@ export const sendChatMessage = async (
   config: ChatServiceConfig = {}
 ): Promise<string> => {
   console.log('sendChatMessage called with messages:', messages);
+  
+  // Get dynamic endpoint from config if not explicitly provided
+  if (!config.endpoint) {
+    try {
+      config.endpoint = await getCompletionsUrl();
+      console.log('Using dynamic endpoint from config:', config.endpoint);
+    } catch (error) {
+      console.warn('Failed to get dynamic endpoint, using default');
+    }
+  }
+  
   const mergedConfig = { ...DEFAULT_CONFIG, ...config };
   let retryCount = 0;
 

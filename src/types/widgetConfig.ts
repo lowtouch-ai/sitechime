@@ -56,7 +56,7 @@ export interface WidgetConfig {
       maxConcurrentUsers: number;
     };
     api: {
-      endpoint: string;
+      host: string;
       version: string;
       timeout: number;
     };

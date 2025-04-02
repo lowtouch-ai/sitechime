@@ -1,13 +1,27 @@
 // filepath: j:\CloudControl\openai-chat-widget\src\services\ragService.ts
-import { RAGFile, RAGUploadResponse } from '../types/chat';
+import { RAGUploadResponse } from '../types/chat';
 
 /**
  * Service for handling Retrieval Augmented Generation (RAG) operations
  * such as file uploads and knowledge collection management.
  */
 
-// Base API URL - should be configurable in a production environment
-const BASE_API_URL = 'http://127.0.0.1:8000/api/openai/api/v1';
+// Import the fetchWidgetConfig function to get the API host from config
+import { fetchWidgetConfig } from './configService';
+
+// Hard-coded RAG API endpoint path
+const RAG_API_PATH = '/api/openai/api/v1';
+
+// Helper function to get the base API URL from the config
+const getBaseApiUrl = async (): Promise<string> => {
+  try {
+    const config = await fetchWidgetConfig('/widget-config.json');
+    return `${config.security.api.host}${RAG_API_PATH}`;
+  } catch (error) {
+    console.error('Error loading API configuration:', error);
+    throw error;
+  }
+};
 
 /**
  * Upload a file to the RAG system
@@ -18,9 +32,10 @@ const BASE_API_URL = 'http://127.0.0.1:8000/api/openai/api/v1';
 export const uploadFile = async (file: File, apiKey: string): Promise<RAGUploadResponse> => {
   const formData = new FormData();
   formData.append('file', file);
-  
+
   try {
-    const response = await fetch(`${BASE_API_URL}/files/`, {
+    const baseApiUrl = await getBaseApiUrl();
+    const response = await fetch(`${baseApiUrl}/files/`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -28,12 +43,12 @@ export const uploadFile = async (file: File, apiKey: string): Promise<RAGUploadR
       },
       body: formData,
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Failed to upload file: ${response.status} ${response.statusText} - ${errorText}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error uploading file:', error);
@@ -49,12 +64,13 @@ export const uploadFile = async (file: File, apiKey: string): Promise<RAGUploadR
  * @returns Promise with the response data
  */
 export const addFileToKnowledge = async (
-  knowledgeId: string, 
-  fileId: string, 
+  knowledgeId: string,
+  fileId: string,
   apiKey: string
 ): Promise<any> => {
   try {
-    const response = await fetch(`${BASE_API_URL}/knowledge/${knowledgeId}/file/add`, {
+    const baseApiUrl = await getBaseApiUrl();
+    const response = await fetch(`${baseApiUrl}/knowledge/${knowledgeId}/file/add`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -63,12 +79,12 @@ export const addFileToKnowledge = async (
       },
       body: JSON.stringify({ file_id: fileId }),
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Failed to add file to knowledge: ${response.status} ${response.statusText} - ${errorText}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error adding file to knowledge:', error);
@@ -83,19 +99,20 @@ export const addFileToKnowledge = async (
  */
 export const listKnowledgeCollections = async (apiKey: string): Promise<any> => {
   try {
-    const response = await fetch(`${BASE_API_URL}/knowledge/`, {
+    const baseApiUrl = await getBaseApiUrl();
+    const response = await fetch(`${baseApiUrl}/knowledge/`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Accept': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Failed to list knowledge collections: ${response.status} ${response.statusText} - ${errorText}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error listing knowledge collections:', error);
