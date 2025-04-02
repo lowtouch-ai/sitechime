@@ -12,6 +12,7 @@ interface MessageContentProps {
 export const MessageContent: React.FC<MessageContentProps> = ({
   content,
   role,
+  theme,
   onImageClick
 }) => {
   const { config } = useChatContext();
@@ -54,16 +55,18 @@ export const MessageContent: React.FC<MessageContentProps> = ({
       
       const [fullMatch, altText, imageUrl] = match;
       
-      // Add the image with click handler
+      // Add the image with click handler for opening in full screen
       parts.push(
-        <img
-          key={`img-${match.index}`}
-          src={imageUrl}
-          alt={altText || 'Image'}
-          className="max-w-full rounded-md my-2 cursor-pointer hover:opacity-90 transition-opacity"
-          onClick={() => onImageClick(imageUrl)}
-          style={{ maxHeight: '300px' }}
-        />
+        <div key={`img-${match.index}`} className="my-2 inline-block">
+          <img
+            src={imageUrl}
+            alt={altText || 'Image'}
+            className="max-w-full rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => onImageClick(imageUrl)}
+            style={{ maxHeight: '300px' }}
+            title="Click to view full size"
+          />
+        </div>
       );
       
       lastIndex = match.index + fullMatch.length;
