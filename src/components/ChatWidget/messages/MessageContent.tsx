@@ -122,7 +122,10 @@ export const MessageContent: React.FC<MessageContentProps> = ({
     // Transform both markdown image syntax and plain image URLs
     return html.replace(
       /(!\[.*?\]\()?(\/?static\/.*?\.(png|jpg|jpeg|gif|svg|webp))(\))?/gi, 
-      (_match, mdPrefix, url, _ext, mdSuffix) => {
+      (match, mdPrefix, url, _ext, mdSuffix) => {
+        // Check if this URL has already been transformed
+        if (url.includes(apiHost)) return match;
+        
         // Clean the URL (remove leading slash if present)
         const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
         const fullUrl = `${apiHost}/api/openai/${cleanUrl}`;
@@ -141,11 +144,12 @@ export const MessageContent: React.FC<MessageContentProps> = ({
   // Process any direct image URLs in content
   const processDirectImageUrls = (content: string): string => {
     // Replace direct image URLs that aren't already part of markdown syntax
+    // and aren't already transformed
     return content.replace(
-      /(?<!!\[\w\s]*\]\()(\/?static\/[^\s)]+\.(png|jpg|jpeg|gif|svg|webp))/gi,
+      /(?<!![\w\s]*\]\()(\/?static\/[^\s)]+\.(png|jpg|jpeg|gif|svg|webp))(?!\))/gi,
       (match) => {
-        const transformedUrl = transformImageUrls(match);
-        return `![Image](${transformedUrl})`;
+        // Just wrap it in markdown syntax without transforming
+        return `![Image](${match})`;
       }
     );
   };
@@ -170,7 +174,9 @@ export const MessageContent: React.FC<MessageContentProps> = ({
     img: ({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
       if (!src) return null;
       
-      const imageUrl = src.startsWith('/static/') || src.startsWith('static/') 
+      // Only transform the URL if it's a static URL and hasn't been transformed yet
+      const imageUrl = (src.startsWith('/static/') || src.startsWith('static/')) && 
+                       !src.includes(config?.security.api.host || '')
         ? transformImageUrls(src)
         : src;
       
