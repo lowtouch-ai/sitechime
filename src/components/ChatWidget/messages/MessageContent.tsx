@@ -62,30 +62,55 @@ const markdownStyles = `
   /* List styles */
   .markdown-content ul {
     list-style-type: disc;
-    padding-left: 1.2rem;
-    margin: 0;
-    padding-top: 0;
-    padding-bottom: 0;
+    padding-left: 1.5rem;
+    margin: 0.2rem 0;
+    line-height: 1.2;
   }
   
   .markdown-content ol {
     list-style-type: decimal;
-    padding-left: 1.2rem;
-    margin: 0;
-    padding-top: 0;
-    padding-bottom: 0;
+    padding-left: 1.5rem;
+    margin: 0.2rem 0;
+    line-height: 1.2;
   }
   
   .markdown-content li {
-    margin: 0;
+    margin: 0.1rem 0;
     padding: 0;
-    line-height: 1.1;
+    line-height: 1.2;
   }
   
-  .markdown-content li:last-child {
-    margin-bottom: 0;
+  /* Reduce space between ul/ol and first li */
+  .markdown-content ul > li:first-child,
+  .markdown-content ol > li:first-child {
+    margin-top: -0.2rem;
   }
-
+  
+  /* Nested list styles - make them more compact */
+  .markdown-content li > ul,
+  .markdown-content li > ol {
+    margin: 0;
+    padding-left: 1.2rem;
+    line-height: 0.9;
+  }
+  
+  .markdown-content li > ul > li,
+  .markdown-content li > ol > li {
+    margin: 0;
+    padding: 0;
+    line-height: 0.9;
+  }
+  
+  /* Add space between consecutive top-level lists */
+  .markdown-content > ul + ul,
+  .markdown-content > ol + ol,
+  .markdown-content > ul + ol,
+  .markdown-content > ol + ul {
+    margin-top: 2rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
   /* Fix spacing between headers and lists */
   .markdown-content h1 + ul,
   .markdown-content h2 + ul,
