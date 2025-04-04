@@ -83,7 +83,7 @@ export const ImageModal: React.FC<ImageModalProps> = ({
       >
         <div className="absolute top-4 right-4 flex space-x-2 z-20">
           <button 
-            className="bg-black blacked-full p-2 shadow-md hover:bg-gray-400 tr4nsition-colors"
+            className="bg-black rounded-full p-2 shadow-md hover:bg-gray-400 transition-colors"
             onClick={handleDownload}
             aria-label="Download image"
             title="Download image"
