@@ -62,19 +62,24 @@ const markdownStyles = `
   /* List styles */
   .markdown-content ul {
     list-style-type: disc;
-    padding-left: 1.5rem;
-    margin: 0.1rem 0;
+    padding-left: 1.2rem;
+    margin: 0;
+    padding-top: 0;
+    padding-bottom: 0;
   }
   
   .markdown-content ol {
     list-style-type: decimal;
-    padding-left: 1.5rem;
-    margin: 0.1rem 0;
+    padding-left: 1.2rem;
+    margin: 0;
+    padding-top: 0;
+    padding-bottom: 0;
   }
   
   .markdown-content li {
-    margin-bottom: 0.1rem;
-    line-height: 1.3;
+    margin: 0;
+    padding: 0;
+    line-height: 1.1;
   }
   
   .markdown-content li:last-child {
@@ -96,6 +101,7 @@ const markdownStyles = `
   /* Make paragraphs in list items more compact */
   .markdown-content li p {
     margin: 0;
+    padding: 0;
   }
 `;
 
