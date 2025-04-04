@@ -6,6 +6,7 @@ import { ImageModal } from './ImageModal';
 import { MessageAuthor } from './MessageAuthor';
 import { RagFilesList } from './RagFilesList';
 import { MessageContent } from './MessageContent';
+import { useChatContext } from '../ChatContext';
 
 interface ChatMessageProps {
   content: string;
@@ -17,6 +18,7 @@ interface ChatMessageProps {
   onToggleThinking: () => void;
   fileAttachment?: FileAttachment;
   ragFiles?: RAGFile[];
+  isLastMessage?: boolean;
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({
@@ -27,10 +29,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   theme,
   thinkingExpanded,
   onToggleThinking,
-  ragFiles
+  ragFiles,
+  isLastMessage = false
 }) => {
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const [imageTitle, setImageTitle] = useState<string>('Image');
+  const { isLoading } = useChatContext();
   
   // Process message content to extract thinking tokens
   const processMessageContent = (content: string) => {
@@ -67,6 +71,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   };
 
   const { regularContent, thinkingContent, inProgressThinking } = processMessageContent(content);
+  
+  // Show loading indicator if this is the last assistant message and we're loading
+  const showLoadingIndicator = isLastMessage && role === 'assistant' && isLoading;
 
   return (
     <>
@@ -109,6 +116,24 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             role={role} 
             theme={theme} 
           />
+        )}
+        
+        {/* Show loading indicator inside the message */}
+        {showLoadingIndicator && (
+          <div className="typing-indicator mt-2" style={{ border: `1px solid ${theme.primary}20` }}>
+            <div 
+              className="typing-indicator-dot"
+              style={{ backgroundColor: theme.secondary }}
+            ></div>
+            <div 
+              className="typing-indicator-dot"
+              style={{ backgroundColor: theme.secondary }}
+            ></div>
+            <div 
+              className="typing-indicator-dot"
+              style={{ backgroundColor: theme.secondary }}
+            ></div>
+          </div>
         )}
       </div>
 

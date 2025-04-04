@@ -33,9 +33,19 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
         backgroundColor: 'rgba(0,0,0,0.03)'
       }}
     >
-      <span className="font-medium">
-        Thinking{inProgress ? ' (in progress)' : ''}
-      </span>
+      <div className="flex items-center">
+        <span className="font-medium mr-2">
+          Thinking{inProgress ? ' (in progress)' : ''}
+        </span>
+        {!isExpanded && inProgress && (
+          <div className="circular-progress w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" 
+               style={{ 
+                 borderColor: `${theme.primary}40`,
+                 borderTopColor: 'transparent'
+               }} 
+          />
+        )}
+      </div>
       {isExpanded ? (
         <ChevronUpIcon className="w-4 h-4" />
       ) : (
@@ -54,18 +64,18 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
     >
       {content}
       {inProgress && (
-        <div className="typing-indicator" style={{ padding: '2px' }}>
+        <div className="typing-indicator flex space-x-1 mt-2" style={{ padding: '2px' }}>
           <div 
-            className="typing-indicator-dot"
-            style={{ width: '4px', height: '4px', backgroundColor: theme.primary }}
+            className="typing-indicator-dot animate-bounce delay-0"
+            style={{ width: '4px', height: '4px', backgroundColor: theme.primary, borderRadius: '50%' }}
           ></div>
           <div 
-            className="typing-indicator-dot"
-            style={{ width: '4px', height: '4px', backgroundColor: theme.primary }}
+            className="typing-indicator-dot animate-bounce delay-150"
+            style={{ width: '4px', height: '4px', backgroundColor: theme.primary, borderRadius: '50%', animationDelay: '0.15s' }}
           ></div>
           <div 
-            className="typing-indicator-dot"
-            style={{ width: '4px', height: '4px', backgroundColor: theme.primary }}
+            className="typing-indicator-dot animate-bounce delay-300"
+            style={{ width: '4px', height: '4px', backgroundColor: theme.primary, borderRadius: '50%', animationDelay: '0.3s' }}
           ></div>
         </div>
       )}

@@ -30,7 +30,7 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ botName, bot
       <span className="text-xs font-medium">{botName}</span>
     </div>
     
-    <div className="typing-indicator">
+    <div className="typing-indicator" style={{ border: `1px solid ${theme.primary}20` }}>
       <div 
         className="typing-indicator-dot"
         style={{ backgroundColor: theme.primary }}

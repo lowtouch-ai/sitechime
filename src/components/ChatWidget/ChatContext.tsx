@@ -188,11 +188,11 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     
     messages.forEach((msg, index) => {
       // If this message has thinking content and doesn't have an expanded state yet,
-      // set it to expanded by default
+      // set it to collapsed by default (changed from expanded to collapsed)
       if (msg.role === 'assistant' && 
           msg.content.includes('<think>') && 
           thinkingExpanded[index] === undefined) {
-        newThinkingExpanded[index] = true;
+        newThinkingExpanded[index] = false; // Set to false (collapsed) instead of true
         updated = true;
       }
     });

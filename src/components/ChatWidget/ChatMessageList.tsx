@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { useChatContext } from './ChatContext';
 import { ChatMessage } from './messages/ChatMessage';
-import { LoadingIndicator } from './messages/LoadingIndicator';
 import { RetryButton } from './messages/RetryButton';
 
 export const ChatMessageList: React.FC = () => {
@@ -20,7 +19,7 @@ export const ChatMessageList: React.FC = () => {
   
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isLoading]);
 
   // Determine if we should show the retry button
   const showRetryButton = messages.length >= 2 && 
@@ -47,18 +46,12 @@ export const ChatMessageList: React.FC = () => {
           onToggleThinking={() => toggleThinkingExpanded(index)}
           fileAttachment={msg.fileAttachment}
           ragFiles={msg.ragFiles}
+          isLastMessage={index === messages.length - 1}
         />
       ))}
-      
-      {isLoading && !messages[messages.length - 1]?.content?.includes('<think>') && messages.length === 0 && (
-        <LoadingIndicator 
-          botName={botName}
-          botAvatarUrl={botAvatarUrl}
-          theme={theme}
-        />
-      )}
 
-      {showRetryButton && (
+      {/* Only show retry button when not loading */}
+      {showRetryButton && !isLoading && (
         <RetryButton onRetry={retryLastMessage} theme={theme} />
       )}
       
