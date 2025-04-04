@@ -3,7 +3,7 @@ import { ChatTheme } from '../types';
 import { useChatContext } from '../ChatContext';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { Components } from 'react-markdown';
+import type { Components, ExtraProps } from 'react-markdown';
 
 interface MessageContentProps {
   content: string;
@@ -124,13 +124,16 @@ export const MessageContent: React.FC<MessageContentProps> = ({
         {...props} 
       />
     ),
-    code: ({ className, children, ...props }: any) => {
-      // const match = /language-(\w+)/.exec(className || '');
-      return !props.node?.position?.start.line ? (
+    code: ({ children, node, ...props }: React.PropsWithChildren<React.HTMLAttributes<HTMLElement> & ExtraProps>) => {
+      // Use the node prop from ExtraProps to determine if it's inline code
+      const isInline = !node?.position?.start.line;
+
+      return isInline ? (
         <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono" {...props}>
           {children}
         </code>
       ) : (
+        // For code blocks, render with block styling
         <code className="block bg-gray-100 p-2 rounded text-sm font-mono overflow-x-auto" {...props}>
           {children}
         </code>
