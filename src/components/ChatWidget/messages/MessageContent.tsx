@@ -125,7 +125,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({
       />
     ),
     code: ({ className, children, ...props }: any) => {
-      const match = /language-(\w+)/.exec(className || '');
+      // const match = /language-(\w+)/.exec(className || '');
       return !props.node?.position?.start.line ? (
         <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono" {...props}>
           {children}
