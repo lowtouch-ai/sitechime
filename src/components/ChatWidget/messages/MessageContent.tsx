@@ -1,9 +1,103 @@
 import React from 'react';
 import { ChatTheme } from '../types';
 import { useChatContext } from '../ChatContext';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import type { Components, ExtraProps } from 'react-markdown';
+import ReactShowdown from 'react-showdown';
+
+// Add CSS for table and list styling
+const markdownStyles = `
+  /* Modern Table styles */
+  .markdown-content table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    margin: 1rem 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .markdown-content thead {
+    background-color: #f9fafb;
+  }
+  
+  .markdown-content th {
+    color: #4b5563;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 2px solid #e5e7eb;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+  }
+  
+  .markdown-content td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #1f2937;
+    background-color: white;
+  }
+  
+  .markdown-content tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .markdown-content tr:nth-child(even) td {
+    background-color: #f9fafb;
+  }
+  
+  .markdown-content tr:hover td {
+    background-color: #f3f4f6;
+  }
+  
+  /* Make tables responsive */
+  .markdown-content .table-container {
+    overflow-x: auto;
+    display: block;
+    width: 100%;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+  }
+  
+  /* List styles */
+  .markdown-content ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin: 0.1rem 0;
+  }
+  
+  .markdown-content ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+    margin: 0.1rem 0;
+  }
+  
+  .markdown-content li {
+    margin-bottom: 0.1rem;
+    line-height: 1.3;
+  }
+  
+  .markdown-content li:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Fix spacing between headers and lists */
+  .markdown-content h1 + ul,
+  .markdown-content h2 + ul,
+  .markdown-content h3 + ul,
+  .markdown-content h4 + ul,
+  .markdown-content h1 + ol,
+  .markdown-content h2 + ol,
+  .markdown-content h3 + ol,
+  .markdown-content h4 + ol {
+    margin-top: 0;
+  }
+
+  /* Make paragraphs in list items more compact */
+  .markdown-content li p {
+    margin: 0;
+  }
+`;
 
 interface MessageContentProps {
   content: string;
@@ -71,9 +165,9 @@ export const MessageContent: React.FC<MessageContentProps> = ({
   // Process content for assistant messages
   const processedContent = transformImageUrls(processDirectImageUrls(content));
 
-  // Custom components for markdown rendering
-  const components: Components = {
-    img: ({ src, alt, ...props }) => {
+  // Custom components and options for markdown rendering
+  const components = {
+    img: ({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
       if (!src) return null;
       
       const imageUrl = src.startsWith('/static/') || src.startsWith('static/') 
@@ -101,96 +195,46 @@ export const MessageContent: React.FC<MessageContentProps> = ({
         </figure>
       );
     },
-    table: ({ ...props }) => (
-      <div className="overflow-x-auto my-4">
-        <table className="border-collapse w-full" {...props} />
+    table: ({ children, ...props }: React.TableHTMLAttributes<HTMLTableElement>) => (
+      <div className="table-container">
+        <table {...props}>{children}</table>
       </div>
     ),
-    th: ({ ...props }) => (
-      <th 
-        className="border border-gray-300 bg-gray-100 px-4 py-2 text-left font-medium" 
-        {...props} 
-      />
+    ul: ({ children, ...props }: React.HTMLAttributes<HTMLUListElement>) => (
+      <ul {...props}>{children}</ul>
     ),
-    td: ({ ...props }) => (
-      <td 
-        className="border border-gray-300 px-4 py-2" 
-        {...props} 
-      />
+    ol: ({ children, ...props }: React.HTMLAttributes<HTMLOListElement>) => (
+      <ol {...props}>{children}</ol>
     ),
-    tr: ({ ...props }) => (
-      <tr 
-        className="border-b border-gray-300" 
-        {...props} 
-      />
-    ),
-    code: ({ children, node, ...props }: React.PropsWithChildren<React.HTMLAttributes<HTMLElement> & ExtraProps>) => {
-      // Use the node prop from ExtraProps to determine if it's inline code
-      const isInline = !node?.position?.start.line;
-
-      return isInline ? (
-        <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono" {...props}>
-          {children}
-        </code>
-      ) : (
-        // For code blocks, render with block styling
-        <code className="block bg-gray-100 p-2 rounded text-sm font-mono overflow-x-auto" {...props}>
-          {children}
-        </code>
-      );
-    },
-    pre: ({ ...props }) => (
-      <pre className="bg-gray-100 p-2 rounded my-2 overflow-x-auto" {...props} />
-    ),
-    blockquote: ({ ...props }) => (
-      <blockquote 
-        className="border-l-4 border-gray-300 pl-4 italic my-2" 
-        {...props} 
-      />
-    ),
-    strong: ({ ...props }) => (
-      <strong className="font-bold" {...props} />
-    ),
-    em: ({ ...props }) => (
-      <em className="italic" {...props} />
-    ),
-    a: ({ ...props }) => (
-      <a className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />
-    ),
-    ul: ({ ...props }) => (
-      <ul className="list-disc pl-5 my-2" {...props} />
-    ),
-    ol: ({ ...props }) => (
-      <ol className="list-decimal pl-5 my-2" {...props} />
-    ),
-    li: ({ ...props }) => (
-      <li className="mb-1" {...props} />
-    ),
-    h1: ({ ...props }) => (
-      <h1 className="text-xl font-bold mt-4 mb-2" {...props} />
-    ),
-    h2: ({ ...props }) => (
-      <h2 className="text-lg font-bold mt-3 mb-2" {...props} />
-    ),
-    h3: ({ ...props }) => (
-      <h3 className="text-md font-bold mt-3 mb-1" {...props} />
-    ),
-    hr: ({ ...props }) => (
-      <hr className="my-4 border-gray-300" {...props} />
+    li: ({ children, ...props }: React.LiHTMLAttributes<HTMLLIElement>) => (
+      <li {...props}>{children}</li>
     )
   };
 
+  // Showdown options
+  const options = {
+    tables: true,
+    simplifiedAutoLink: true,
+    strikethrough: true,
+    tasklists: true,
+    ghCodeBlocks: true,
+    emoji: true
+  };
+
   return (
-    <div 
-      className="markdown-content text-sm text-left"
-      data-testid="message-content"
-    >
-      <ReactMarkdown 
-        remarkPlugins={[remarkGfm]} 
-        components={components}
+    <>
+      <style>{markdownStyles}</style>
+      <div 
+        className="markdown-content text-sm text-left"
+        data-testid="message-content"
       >
-        {processedContent}
-      </ReactMarkdown>
-    </div>
+        <ReactShowdown 
+          markdown={processedContent}
+          components={components}
+          options={options}
+          flavor="github"
+        />
+      </div>
+    </>
   );
 }
