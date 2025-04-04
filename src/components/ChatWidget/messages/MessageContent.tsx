@@ -77,7 +77,14 @@ const markdownStyles = `
   .markdown-content li {
     margin: 0.1rem 0;
     padding: 0;
-    line-height: 1.2;
+    line-height: 1.4;
+  }
+  
+  /* Style for multi-line list items */
+  .markdown-content li p {
+    margin: 0;
+    padding: 0;
+    line-height: 1.4;
   }
   
   /* Reduce space between ul/ol and first li */
@@ -91,14 +98,14 @@ const markdownStyles = `
   .markdown-content li > ol {
     margin: 0;
     padding-left: 1.2rem;
-    line-height: 0.9;
+    line-height: 1.2;
   }
   
   .markdown-content li > ul > li,
   .markdown-content li > ol > li {
     margin: 0;
     padding: 0;
-    line-height: 0.9;
+    line-height: 1.2;
   }
   
   /* Add space between consecutive top-level lists */
@@ -121,12 +128,6 @@ const markdownStyles = `
   .markdown-content h3 + ol,
   .markdown-content h4 + ol {
     margin-top: 0;
-  }
-
-  /* Make paragraphs in list items more compact */
-  .markdown-content li p {
-    margin: 0;
-    padding: 0;
   }
 `;
 
