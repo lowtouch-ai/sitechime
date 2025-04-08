@@ -176,9 +176,8 @@ export const ChatInput: React.FC = () => {  const {
   const removeFile = (fileId: string) => {
     removeRagFile(fileId);
   };
-
-  // Determine if input should be disabled
-  const isInputDisabled = isLoading || showTerms || isUploading;
+  // Determine if input should be disabled (only for terms and uploading, not during loading)
+  const isInputDisabled = showTerms || isUploading;
   
   // Message to show in the placeholder depending on terms acceptance
   const placeholderText = !termsAccepted && showTerms 
