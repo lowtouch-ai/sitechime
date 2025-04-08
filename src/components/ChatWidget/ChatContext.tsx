@@ -79,7 +79,7 @@ const TERMS_ACCEPTED_KEY = 'chat-widget-terms-accepted';
 
 const recordTermsAcceptance = async (configId: string) => {
   try {
-    const apiUrl = `${process.env.VITE_TNC_API_URL}/api/tnc/accept/`;
+    const apiUrl = `${process.env.VITE_BACKEND_API_URL}/api/tnc/accept/`;
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
