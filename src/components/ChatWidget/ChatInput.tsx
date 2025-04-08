@@ -30,7 +30,6 @@ export const ChatInput: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-
   const handleSend = () => {
     if (isLoading) {
       abortStreaming(); // Just abort the stream without clearing messages
@@ -53,6 +52,10 @@ export const ChatInput: React.FC = () => {
       
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
+        // Keep focus on the textarea after sending a message
+        setTimeout(() => {
+          textareaRef.current?.focus();
+        }, 0);
       }
     }
   };
@@ -222,10 +225,9 @@ export const ChatInput: React.FC = () => {
         </div>
       )}
       
-      <div className="relative flex items-center">
-        <textarea
+      <div className="relative flex items-center">        <textarea
           ref={textareaRef}
-          className="flex-1 resize-none overflow-hidden rounded-2xl border px-4 py-3 pr-12 focus:outline-none focus:ring-2"
+          className="flex-1 resize-none overflow-hidden rounded-2xl border px-4 py-3 focus:outline-none focus:ring-2"
           style={{ 
             borderColor: theme.border,
             minHeight: '44px',
@@ -233,7 +235,10 @@ export const ChatInput: React.FC = () => {
             backgroundColor: theme.surface,
             color: theme.text,
             outlineColor: theme.primary,
-            opacity: isInputDisabled ? 0.6 : 1
+            opacity: isInputDisabled ? 0.6 : 1,
+            paddingRight: fileUploadEnabled ? '80px' : '48px', // Increased padding to prevent text clipping into buttons
+            wordWrap: 'break-word', // Ensure text wraps properly
+            whiteSpace: 'pre-wrap' // Maintain line breaks but allow wrapping
           }}
           placeholder={placeholderText}
           value={inputValue}
