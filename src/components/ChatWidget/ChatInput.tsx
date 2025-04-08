@@ -1,10 +1,9 @@
-import React, { useRef, KeyboardEvent, useState, ChangeEvent } from 'react';
+import React, { useRef, KeyboardEvent, useState, ChangeEvent, useEffect } from 'react';
 import { PaperAirplaneIcon, StopIcon, PaperClipIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { useChatContext } from './ChatContext';
 import { uploadFile } from '../../services/ragService';
 
-export const ChatInput: React.FC = () => {
-  const { 
+export const ChatInput: React.FC = () => {  const { 
     sendMessage, 
     inputValue, 
     setInputValue, 
@@ -26,11 +25,23 @@ export const ChatInput: React.FC = () => {
     uploadError
   } = useChatContext();
   
+  // Track previous loading state to detect when loading finishes
+  const [prevIsLoading, setPrevIsLoading] = useState(isLoading);
+  
+  // Effect to focus the textarea after a message finishes sending
+  useEffect(() => {
+    // If we were loading before and now we're not, refocus the textarea
+    if (prevIsLoading && !isLoading && textareaRef.current && !showTerms && !isUploading) {
+      textareaRef.current.focus();
+    }
+    // Update previous loading state
+    setPrevIsLoading(isLoading);
+  }, [isLoading, prevIsLoading, showTerms]);
+  
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileError, setFileError] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const handleSend = () => {
+  const [isUploading, setIsUploading] = useState(false);  const handleSend = () => {
     if (isLoading) {
       abortStreaming(); // Just abort the stream without clearing messages
       return;
@@ -52,10 +63,6 @@ export const ChatInput: React.FC = () => {
       
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
-        // Keep focus on the textarea after sending a message
-        setTimeout(() => {
-          textareaRef.current?.focus();
-        }, 0);
       }
     }
   };
