@@ -18,6 +18,7 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
   inProgress = false,
 }) => {
   const [seconds, setSeconds] = useState(0);
+  seconds
   
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
