@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { ChatTheme } from '../types';
 
@@ -16,7 +16,27 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
   onToggle,
   theme,
   inProgress = false,
-}) => (
+}) => {
+  const [seconds, setSeconds] = useState(0);
+  
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    
+    if (inProgress) {
+      // Start a timer when thinking is in progress
+      interval = setInterval(() => {
+        setSeconds(prevSeconds => prevSeconds + 1);
+      }, 1000);
+    } else {
+      // Keep the final seconds count when thinking completes
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [inProgress]);
+  
+  return (
   <div 
     className="thinking-section mb-2 pb-2 border-b" 
     style={{ 
@@ -24,8 +44,7 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
       borderBottomWidth: '1px'
     }}
     data-testid="thinking-section"
-  >
-    <button 
+  >    <button 
       onClick={onToggle} 
       className="flex items-center justify-between text-xs w-full py-1 px-2 rounded hover:bg-gray-100 transition-colors"
       style={{ 
@@ -34,8 +53,11 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
       }}
     >
       <div className="flex items-center">
+        {/* <span className="font-medium mr-2">
+          Thought for {seconds} seconds{inProgress ? ' (in progress)' : ''}
+        </span> */}
         <span className="font-medium mr-2">
-          Thinking{inProgress ? ' (in progress)' : ''}
+          Thoughts
         </span>
         {!isExpanded && inProgress && (
           <div className="circular-progress w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" 
@@ -81,4 +103,5 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
       )}
     </div>
   </div>
-);
+  );
+};
