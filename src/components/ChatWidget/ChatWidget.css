@@ -67,6 +67,10 @@
   bottom: 20px;
   display: flex;
   flex-direction: column;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .chat-widget-right {
@@ -130,6 +134,10 @@
   border-radius: 1rem;
   position: relative;
   white-space: pre-wrap;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 .message-user {
