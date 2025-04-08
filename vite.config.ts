@@ -44,6 +44,7 @@ export default defineConfig({
     'process.env': {
       NODE_ENV: JSON.stringify(process.env.NODE_ENV),
       VITE_BACKEND_API_URL: JSON.stringify(process.env.VITE_BACKEND_API_URL),
+      VITE_OPENAI_HOST: JSON.stringify(process.env.VITE_OPENAI_HOST),
     }
   },
   css: {
