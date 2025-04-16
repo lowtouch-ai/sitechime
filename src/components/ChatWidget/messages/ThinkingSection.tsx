@@ -36,7 +36,7 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
   
   return (
     <div 
-      className="thinking-section mb-3 pb-2"
+      className="thinking-section mb-3"
       style={{ 
         borderBottom: `1px solid ${theme.border}`,
         borderRadius: '4px',
