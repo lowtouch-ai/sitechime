@@ -207,7 +207,7 @@
 .thinking-content {
   margin-top: 6px;
   font-size: 0.75rem;
-  padding: 6px 8px;
+  /* padding: 6px 8px; */
   border-radius: 4px;
   white-space: pre-wrap;
   font-family: monospace;
