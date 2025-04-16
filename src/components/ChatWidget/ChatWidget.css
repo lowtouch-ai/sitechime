@@ -209,7 +209,7 @@
   font-size: 0.75rem;
   /* padding: 6px 8px; */
   border-radius: 4px;
-  white-space: pre-wrap;
+  /* white-space: pre-wrap; */
   font-family: monospace;
   background-color: rgba(0, 0, 0, 0.03);
 }
