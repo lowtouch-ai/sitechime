@@ -80,7 +80,7 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
       </button>
       
       <div 
-        className={`thinking-content mt-2 p-3 rounded transition-all duration-200 ease-in-out ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden p-0'}`}
+        className={`thinking-content mt-2 rounded transition-all duration-200 ease-in-out ${isExpanded ? ' p-3 max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden p-0'}`}
         style={{ 
           backgroundColor: `${theme.primary}05`,
           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
