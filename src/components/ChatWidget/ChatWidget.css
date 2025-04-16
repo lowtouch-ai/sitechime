@@ -133,7 +133,7 @@
   padding: 0.75rem 1rem;
   border-radius: 1rem;
   position: relative;
-  white-space: pre-wrap;
+  /* white-space: pre-wrap; */
   user-select: text;
   -webkit-user-select: text;
   -moz-user-select: text;
