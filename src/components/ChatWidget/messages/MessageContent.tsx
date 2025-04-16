@@ -55,7 +55,6 @@ const markdownStyles = `
     overflow-x: auto;
     display: block;
     width: 100%;
-    margin-bottom: 1rem;
     border-radius: 0.5rem;
   }
   
