@@ -32,6 +32,11 @@ export interface WidgetConfig {
       height: number;
       width: number;
     };
+    toggleButtonIcon?: {
+      url: string;
+      height?: number;
+      width?: number;
+    };
     theme: {
       primaryColor: string;
       secondaryColor: string;
@@ -48,10 +53,10 @@ export interface WidgetConfig {
   };
   security: {
     authentication: {
-      tokenRefreshInterval: number;
+      tokenRefreshInterval?: number;
       maxRetries: number;
     };
-    rateLimit: {
+    rateLimit?: {
       requestsPerMinute: number;
       maxConcurrentUsers: number;
     };
@@ -67,11 +72,11 @@ export interface WidgetConfig {
       maxSize: number;
       allowedTypes: string[];
     };
-    logging: {
+    logging?: {
       level: 'debug' | 'info' | 'warn' | 'error';
       retention: number;
     };
-    performance: {
+    performance?: {
       messageBuffer: number;
       streamingBufferSize: number;
     };

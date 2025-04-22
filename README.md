@@ -45,6 +45,29 @@ function App() {
 | primaryColor | string | '#0066cc' | Primary color for the widget |
 | welcomeMessage | string | 'Hello! How can I help you today?' | Initial message from the assistant |
 
+## Configuration
+
+You can customize the widget through the `widget-config.json` file. Example configuration:
+
+```json
+{
+  "branding": {
+    "logo": {
+      "url": "https://example.com/logo.png",
+      "height": 40,
+      "width": 40
+    },
+    "toggleButtonIcon": {
+      "url": "https://example.com/chat-icon.png",
+      "height": 32,
+      "width": 32
+    }
+  }
+}
+```
+
+The `toggleButtonIcon` is used for the chat button, while `logo` is used for the bot avatar in chat. If `toggleButtonIcon` is not provided, it will fall back to using the `logo`.
+
 ## Development
 
 1. Clone the repository

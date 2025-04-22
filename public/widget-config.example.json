@@ -28,12 +28,12 @@
   },
   "branding": {
     "logo": {
-      "url": "https://demo2025a.lowtouch.ai/static/splash.png",
+      "url": "https://www.ecloudcontrol.com/wp-content/uploads/2025/04/lowtouch_ai_logo.png",
       "height": 40,
       "width": 40
     },
     "toggleButtonIcon": {
-      "url": "https://www.ecloudcontrol.com/wp-content/uploads/2025/04/lowtouch_ai_logo.png",
+      "url": "https://www.ecloudcontrol.com/wp-content/uploads/2025/04/chat_button_icon.png",
       "height": 32,
       "width": 32
     },
@@ -56,7 +56,7 @@
       "maxRetries": 3
     },
     "api": {
-      "host": "http://127.0.0.1:8000",
+      "host": "https://cloudcontrol-widget-backend.pcpldevelopment.com",
       "version": "v1",
       "timeout": 300000,
       "model": "webshop:0.5"
@@ -69,4 +69,4 @@
       "allowedTypes": ["image/*", "application/pdf"]
     }
   }
-}
+} 

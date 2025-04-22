@@ -20,6 +20,10 @@ export const ChatToggleButton: React.FC = () => {
     cursor: 'pointer'
   };
   
+  // Determine which icon to use (toggleButtonIcon first, then logo, then default icon)
+  const toggleIconUrl = config?.branding.toggleButtonIcon?.url;
+  const logoUrl = config?.branding.logo.url;
+  
   return (
     <button 
       className="chat-toggle-button"
@@ -27,9 +31,15 @@ export const ChatToggleButton: React.FC = () => {
       style={buttonStyle}
       aria-label="Toggle chat"
     >
-      {config?.branding.logo.url ? (
+      {toggleIconUrl ? (
         <img 
-          src={config.branding.logo.url} 
+          src={toggleIconUrl} 
+          alt="Chat"
+          className="w-8 h-8 object-contain"
+        />
+      ) : logoUrl ? (
+        <img 
+          src={logoUrl} 
           alt="Chat"
           className="w-8 h-8 object-contain"
         />
