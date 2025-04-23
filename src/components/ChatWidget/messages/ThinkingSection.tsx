@@ -91,7 +91,7 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
           lineHeight: '1.5'
         }}
       >
-        {content}
+        {content?.trim()}
         {inProgress && isExpanded && (
           <div className="typing-indicator flex space-x-1 mt-3 pl-1">
             <div 
