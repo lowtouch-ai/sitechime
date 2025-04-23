@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './ChatWidget.css';
 
 import { ChatProvider } from './ChatContext';
@@ -17,9 +17,27 @@ const ChatWidgetInner: React.FC = () => {
     isOpen, 
     widgetPosition,
     isExpanded,
+    setIsExpanded,
     theme,
     showTerms
   } = useChatContext();
+
+  // Add event listener for ESC key to exit fullscreen mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isExpanded) {
+        setIsExpanded(false);
+      }
+    };
+
+    if (isExpanded) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isExpanded, setIsExpanded]);
 
   // Calculate widget position
   const widgetStyle: React.CSSProperties = {

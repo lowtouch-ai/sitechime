@@ -18,6 +18,14 @@ export const ChatHeader: React.FC = () => {
     theme
   } = useChatContext();
   
+  const handleClose = () => {
+    setIsOpen(false);
+    // Reset expanded state when closing
+    if (isExpanded) {
+      setIsExpanded(false);
+    }
+  };
+  
   return (
     <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: theme.border }}>
       <div className="flex items-center space-x-3">
@@ -59,7 +67,7 @@ export const ChatHeader: React.FC = () => {
           <TrashIcon className="w-5 h-5" />
         </button>
         <button 
-          onClick={() => setIsOpen(false)}
+          onClick={handleClose}
           className="p-2 rounded-full hover:bg-gray-100 transition-colors"
           aria-label="Close chat"
         >

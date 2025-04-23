@@ -3,7 +3,7 @@ import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { useChatContext } from './ChatContext';
 
 export const ChatToggleButton: React.FC = () => {
-  const { setIsOpen, isOpen, theme, config } = useChatContext();
+  const { setIsOpen, isOpen, setIsExpanded, isExpanded, theme, config } = useChatContext();
   
   const buttonStyle = {
     backgroundColor: theme.primary,
@@ -24,10 +24,18 @@ export const ChatToggleButton: React.FC = () => {
   const toggleIconUrl = config?.branding.toggleButtonIcon?.url;
   const logoUrl = config?.branding.logo.url;
   
+  const handleToggle = () => {
+    // If closing the chat, also reset expanded state
+    if (isOpen && isExpanded) {
+      setIsExpanded(false);
+    }
+    setIsOpen(!isOpen);
+  };
+  
   return (
     <button 
       className="chat-toggle-button"
-      onClick={() => setIsOpen(!isOpen)}
+      onClick={handleToggle}
       style={buttonStyle}
       aria-label="Toggle chat"
     >
