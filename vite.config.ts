@@ -28,6 +28,14 @@ export default defineConfig({
           fs.renameSync(srcPath, destPath);
         }
         
+        // Copy iframe-content.html to dist/data/iframe-content.html
+        const srcIframeHtmlPath = path.resolve(__dirname, 'src/iframe-content.html');
+        const destIframeHtmlPath = path.resolve(dataDir, 'iframe-content.html');
+        
+        if (fs.existsSync(srcIframeHtmlPath)) {
+          fs.copyFileSync(srcIframeHtmlPath, destIframeHtmlPath);
+        }
+        
         // Copy example.html to dist/index.html
         const exampleHtmlPath = path.resolve(__dirname, 'example.html');
         const indexHtmlPath = path.resolve(distDir, 'index.html');
@@ -37,6 +45,7 @@ export default defineConfig({
         console.log('Post-build actions completed successfully!');
         console.log('- Build files moved to dist/data/');
         console.log('- example.html copied to dist/index.html');
+        console.log('- iframe-content.html copied to dist/data/iframe-content.html');
       }
     }
   ],

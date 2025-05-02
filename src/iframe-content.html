@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Widget</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    #chat-widget-container {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-widget-container"></div>
+  <script>
+    // This will be replaced with the actual widget initialization
+    window.addEventListener('message', function(event) {
+      if (event.data.type === 'CHAT_WIDGET_CONFIG') {
+        // Initialize the chat widget with the received config
+        window.chatWidgetConfig = event.data.config;
+        
+        // The actual script will be injected by the parent
+        if (window.initializeChatWidget) {
+          window.initializeChatWidget(window.chatWidgetConfig);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
