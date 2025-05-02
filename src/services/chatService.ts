@@ -33,46 +33,17 @@ export const setConfigUrl = (configUrl: string): void => {
   _configUrl = configUrl;
 };
 
-// Define an interface for the API configuration
-interface ApiConfig {
-  host: string;
-  version: string;
-  timeout: number;
-  model?: string;
-  [key: string]: any; // For any other properties
-}
-
 // Helper function to get the full completions URL and model from config
 const getCompletionsConfig = async (): Promise<{ url: string, model: string }> => {
   try {
-    // Always fetch the latest config to ensure we have the most up-to-date host URL
     const config = await fetchWidgetConfig(_configUrl);
+    const url = `${config.security.api.host}${COMPLETIONS_API_PATH}`;
     
-    // Log the config to help with debugging
-    console.log('Fetched widget config for API calls:', config);
+    // Check if model name is in the config - looking in security.api section
+    // This is a flexible approach that will work even if model is added later
+    const model = (config.security.api as any).model || DEFAULT_MODEL;
     
-    if (config.security && config.security.api && config.security.api.host) {
-      const apiHost = config.security.api.host;
-      console.log('Using API host from config:', apiHost);
-      
-      // Ensure the host URL ends with a slash
-      const hostWithSlash = apiHost.endsWith('/') ? apiHost : `${apiHost}/`;
-      const url = `${hostWithSlash}${COMPLETIONS_API_PATH.startsWith('/') ? COMPLETIONS_API_PATH.substring(1) : COMPLETIONS_API_PATH}`;
-      
-      console.log('Constructed full API URL:', url);
-      
-      // Check if model name is in the config - looking in security.api section
-      const apiConfig = config.security.api as ApiConfig;
-      const model = apiConfig.model || DEFAULT_MODEL;
-      
-      return { url, model };
-    } else {
-      console.warn('API host not found in config, using fallback');
-      return { 
-        url: 'https://api.openai.com/v1/chat/completions',
-        model: DEFAULT_MODEL
-      };
-    }
+    return { url, model };
   } catch (error) {
     console.error('Error loading API configuration:', error);
     // Fallback to defaults if configuration can't be loaded

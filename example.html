@@ -5,50 +5,19 @@
     <!-- Add React and ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Add the chat widget script -->
+    <!-- Add the chat widget and its styles -->
+    <link rel="stylesheet" href="data/openai-chat-widget.css">
     <script src="data/chat-widget.umd.js"></script>
-    
-    <!-- Example of host page styles that won't leak into the widget -->
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 20px;
-        }
-        
-        h1 {
-            color: #8a2be2; /* Purple color that won't affect the widget */
-        }
-        
-        .content {
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-    </style>
 </head>
 <body>
-    <div class="content">
-        <h1>Chat Widget Example</h1>
-        <p>This page demonstrates the chat widget with iframe isolation. The widget is protected from CSS leakage from the host page.</p>
-        <p>Try toggling the widget open and closed using the button in the bottom right corner.</p>
-    </div>
-    
-    <!-- Chat widget container -->
     <div id="chat-widget"></div>
-    
     <script>
-        // Initialize the chat widget with iframe isolation (default)
+        // Initialize the chat widget
         const { mountChatWidget } = SiteChimeWidget;
         mountChatWidget('chat-widget', {
             apiKey: '',
             configUrl: 'data/widget-config.json',
             position: 'bottom-right',
-            // useIframe: true, // This is true by default, set to false to disable iframe isolation
             theme: {
                 primary: '#007bff',
                 secondary: '#ffffff',
