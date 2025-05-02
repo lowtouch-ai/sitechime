@@ -2,10 +2,43 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import fs from 'fs'
+import { OutputAsset, OutputChunk } from 'rollup'
 
 export default defineConfig({
   plugins: [
     react(),
+    {
+      name: 'shadow-dom-css-injector',
+      generateBundle(_, bundle) {
+        // Find the CSS file in the bundle
+        const cssFileName = Object.keys(bundle).find(fileName => fileName.endsWith('.css'));
+        if (cssFileName && bundle[cssFileName]) {
+          const cssAsset = bundle[cssFileName] as OutputAsset;
+          if (!cssAsset.source) return;
+          
+          const cssContent = cssAsset.source.toString();
+          
+          // Find the JS entry file
+          const jsEntryFile = Object.keys(bundle).find(fileName => 
+            fileName.includes('chat-widget') && fileName.endsWith('.js')
+          );
+          
+          if (jsEntryFile && bundle[jsEntryFile]) {
+            const jsChunk = bundle[jsEntryFile] as OutputChunk;
+            if (!jsChunk.code) return;
+            
+            // Replace the CSS import placeholder with the actual CSS content
+            jsChunk.code = jsChunk.code.replace(
+              /const cssContent = `[\s\S]*?`;/,
+              `const cssContent = \`${cssContent}\`;`
+            );
+            
+            // Remove the CSS file from the bundle as it's now inlined
+            delete bundle[cssFileName];
+          }
+        }
+      }
+    },
     {
       name: 'post-build-actions',
       closeBundle: async () => {
