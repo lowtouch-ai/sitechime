@@ -57,7 +57,7 @@ const ChatWidgetInner: React.FC = () => {
   };
 
   return (
-    <div className={`chat-widget ${widgetPosition === 'bottom-right' ? 'chat-widget-right' : 'chat-widget-left'}`} 
+    <div className={`sitechime-widget chat-widget ${widgetPosition === 'bottom-right' ? 'chat-widget-right' : 'chat-widget-left'}`} 
       style={widgetStyle}>
       <ChatToggleButton />
       

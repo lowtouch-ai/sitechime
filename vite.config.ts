@@ -27,10 +27,18 @@ export default defineConfig({
             const jsChunk = bundle[jsEntryFile] as OutputChunk;
             if (!jsChunk.code) return;
             
-            // Replace the CSS import placeholder with the actual CSS content
+            // Inject code to create a style element and append CSS
+            const injectCssCode = `
+// Create and inject styles into shadow DOM
+const styleElement = document.createElement('style');
+styleElement.textContent = ${JSON.stringify(cssContent)};
+shadowRoot.appendChild(styleElement);
+`;
+            
+            // Insert the CSS injection code right after shadowRoot.appendChild(shadowContainer);
             jsChunk.code = jsChunk.code.replace(
-              /const cssContent = `[\s\S]*?`;/,
-              `const cssContent = \`${cssContent}\`;`
+              /shadowRoot\.appendChild\(shadowContainer\);/,
+              `shadowRoot.appendChild(shadowContainer);\n${injectCssCode}`
             );
             
             // Remove the CSS file from the bundle as it's now inlined

@@ -31,19 +31,8 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
   shadowContainer.id = 'shadow-container';
   shadowRoot.appendChild(shadowContainer);
   
-  // Create style element to inject our CSS
-  const styleElement = document.createElement('style');
+  // We'll load the CSS in the Vite plugin
   
-  // Import CSS files content at build time
-  // This will be replaced with actual CSS content during build
-  const cssContent = `
-    /* Widget styles will be injected here during build */
-    @import url('./ChatWidget.css');
-  `;
-  
-  styleElement.textContent = cssContent;
-  shadowRoot.appendChild(styleElement);
-
   const root = createRoot(shadowContainer);
   root.render(<ChatWidget {...config} />);
   
