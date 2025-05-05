@@ -25,6 +25,7 @@ interface ChatContextProps {
   welcomeMessage?: string;
   botName?: string;
   botAvatarUrl?: string;
+  shadowRootRef?: ShadowRoot | null; // Add reference to the shadow root
 }
 
 // Map to track expanded state of thinking sections by message index
@@ -70,6 +71,7 @@ interface ChatContextValue {
   removeRagFile: (fileId: string) => void;
   uploadError: string | null;
   apiKey: string; // Add this property to fix the error
+  shadowRootRef: ShadowRoot | null; // Add reference to the shadow root
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);
@@ -112,6 +114,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   welcomeMessage = 'Hello! How can I help you today?',
   botName = 'AI Assistant',
   botAvatarUrl = '',
+  shadowRootRef = null, // Add shadowRootRef prop with default value
 }) => {
   const [config, setConfig] = useState<WidgetConfig | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -302,7 +305,8 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     addRagFile,
     removeRagFile,
     uploadError,
-    apiKey // Add apiKey to the value object
+    apiKey, // Add apiKey to the value object
+    shadowRootRef // Add shadowRootRef to the value object
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

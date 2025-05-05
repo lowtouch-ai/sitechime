@@ -12,4 +12,5 @@ export interface ChatWidgetProps {
   position?: 'bottom-right' | 'bottom-left';
   theme?: ChatTheme;
   welcomeMessage?: string;
+  shadowRootRef?: ShadowRoot | null;
 }

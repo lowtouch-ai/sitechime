@@ -3,6 +3,7 @@ import { XMarkIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import Zoom from 'react-medium-image-zoom';
 import 'react-medium-image-zoom/dist/styles.css';
 import { createPortal } from 'react-dom';
+import { useChatContext } from '../ChatContext';
 
 interface ImageModalProps {
   imageUrl: string;
@@ -15,6 +16,9 @@ export const ImageModal: React.FC<ImageModalProps> = ({
   onClose,
   imageTitle = 'Image'
 }) => {
+  // Get the shadow root from context
+  const { shadowRootRef } = useChatContext();
+  
   // Add a class to the body to prevent scrolling when modal is open
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -63,7 +67,10 @@ export const ImageModal: React.FC<ImageModalProps> = ({
     }
   };
 
-  // Use a portal to render the modal directly in the document body
+  // Check if we have a shadowRoot to use for the portal
+  const portalTarget = shadowRootRef || document.body;
+
+  // Use a portal to render the modal inside the shadow DOM or fallback to document.body
   return createPortal(
     <div 
       className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center"
@@ -118,6 +125,6 @@ export const ImageModal: React.FC<ImageModalProps> = ({
         </div>
       </div>
     </div>,
-    document.body
+    portalTarget
   );
 };
