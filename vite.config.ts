@@ -28,6 +28,29 @@ export default defineConfig({
           fs.renameSync(srcPath, destPath);
         }
         
+        // Copy CSS file to the root directory for easier access from Shadow DOM
+        const cssFilePath = path.resolve(dataDir, 'openai-chat-widget.css');
+        if (fs.existsSync(cssFilePath)) {
+          const rootCssPath = path.resolve(distDir, 'openai-chat-widget.css');
+          fs.copyFileSync(cssFilePath, rootCssPath);
+          console.log('- CSS file copied to root directory for Shadow DOM access');
+        } else {
+          console.warn('Warning: CSS file not found in expected location');
+          
+          // Look for CSS file in assets directory
+          const assetsDir = path.resolve(dataDir, 'assets');
+          if (fs.existsSync(assetsDir)) {
+            const assetFiles = fs.readdirSync(assetsDir);
+            const cssFile = assetFiles.find(file => file.endsWith('.css'));
+            if (cssFile) {
+              const assetCssPath = path.resolve(assetsDir, cssFile);
+              const rootCssPath = path.resolve(distDir, 'openai-chat-widget.css');
+              fs.copyFileSync(assetCssPath, rootCssPath);
+              console.log(`- CSS file found in assets and copied to root directory: ${cssFile}`);
+            }
+          }
+        }
+        
         // Copy example.html to dist/index.html
         const exampleHtmlPath = path.resolve(__dirname, 'example.html');
         const indexHtmlPath = path.resolve(distDir, 'index.html');

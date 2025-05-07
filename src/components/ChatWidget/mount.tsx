@@ -52,17 +52,53 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
       }
     };
     
+    // Get all possible CSS paths to try - this ensures we find the Tailwind styles
+    const getCssPaths = () => {
+      const paths = [];
+      
+      // 1. Try the standard build path
+      paths.push(new URL('../../../dist/data/openai-chat-widget.css', import.meta.url).toString());
+      
+      // 2. Try to get CSS from the same directory as the current script
+      const scriptElement = document.currentScript as HTMLScriptElement;
+      if (scriptElement && scriptElement.src) {
+        const scriptPath = scriptElement.src;
+        const scriptDir = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
+        paths.push(`${scriptDir}/openai-chat-widget.css`);
+        
+        // 3. Also try assets subdirectory
+        paths.push(`${scriptDir}/assets/openai-chat-widget.css`);
+      }
+      
+      // 4. Try relative to the current page
+      const pageUrl = window.location.href;
+      const pageDir = pageUrl.substring(0, pageUrl.lastIndexOf('/'));
+      paths.push(`${pageDir}/openai-chat-widget.css`);
+      paths.push(`${pageDir}/data/openai-chat-widget.css`);
+      
+      return paths;
+    };
+    
+    // Try each path until we find one that works
+    const tryLoadCss = async (paths: string[]) => {
+      for (const path of paths) {
+        try {
+          console.log(`Trying to load CSS from: ${path}`);
+          const response = await fetch(path);
+          if (response.ok) {
+            console.log(`Successfully loaded CSS from: ${path}`);
+            return response;
+          }
+        } catch (error) {
+          console.log(`Failed to load CSS from: ${path}`, error);
+        }
+      }
+      throw new Error('Could not load CSS from any path');
+    };
+    
     // Import Tailwind and component styles
     Promise.all([
-      // Use a relative path that will work in both dev and production
-      fetch(new URL('../../../dist/data/openai-chat-widget.css', import.meta.url).toString())
-        .catch(() => {
-          // Fallback to look for CSS in the same directory as the JS file
-          console.log('Trying fallback CSS path...');
-          const scriptPath = document.currentScript?.getAttribute('src') || '';
-          const basePath = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
-          return fetch(`${basePath}/openai-chat-widget.css`);
-        }),
+      tryLoadCss(getCssPaths()),
       loadZoomStylesIntoShadowDOM()
     ])
       .then(async ([mainCssResponse, zoomCss]) => {
@@ -108,8 +144,9 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
       })
       .catch(error => {
         console.error('Failed to load widget styles:', error);
-        // Fallback: Add basic styles directly
+        // Fallback: Add basic styles directly including essential Tailwind utilities
         const fallbackStyles = `
+          /* Base widget styles */
           .chat-widget { position: fixed; z-index: 1000; bottom: 20px; right: 20px; display: flex; flex-direction: column; }
           .chat-window { position: fixed; bottom: 80px; right: 20px; min-height: 500px; width: 400px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; }
           .chat-window.visible { display: flex; }
@@ -117,9 +154,55 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
           .chat-message { max-width: 85%; padding: 0.75rem 1rem; border-radius: 1rem; margin-bottom: 0.5rem; }
           .message-user { align-self: flex-end; background-color: #3b82f6; color: white; margin-left: auto; }
           .message-assistant { align-self: flex-start; background-color: #f3f4f6; color: black; margin-right: auto; }
+          
+          /* Essential Tailwind utilities */
+          .flex { display: flex; }
+          .flex-col { flex-direction: column; }
+          .flex-row { flex-direction: row; }
+          .items-center { align-items: center; }
+          .justify-center { justify-content: center; }
+          .justify-between { justify-content: space-between; }
+          .p-1 { padding: 0.25rem; }
+          .p-2 { padding: 0.5rem; }
+          .p-3 { padding: 0.75rem; }
+          .p-4 { padding: 1rem; }
+          .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+          .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+          .m-1 { margin: 0.25rem; }
+          .m-2 { margin: 0.5rem; }
+          .m-3 { margin: 0.75rem; }
+          .m-4 { margin: 1rem; }
+          .rounded { border-radius: 0.25rem; }
+          .rounded-md { border-radius: 0.375rem; }
+          .rounded-lg { border-radius: 0.5rem; }
+          .rounded-full { border-radius: 9999px; }
+          .bg-white { background-color: white; }
+          .bg-gray-100 { background-color: #f3f4f6; }
+          .bg-blue-500 { background-color: #3b82f6; }
+          .text-white { color: white; }
+          .text-gray-800 { color: #1f2937; }
+          .text-sm { font-size: 0.875rem; }
+          .text-lg { font-size: 1.125rem; }
+          .font-bold { font-weight: 700; }
+          .font-medium { font-weight: 500; }
+          .w-full { width: 100%; }
+          .h-full { height: 100%; }
+          .cursor-pointer { cursor: pointer; }
+          .overflow-hidden { overflow: hidden; }
+          .shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+          .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+          .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+          .hidden { display: none; }
+          .block { display: block; }
+          .relative { position: relative; }
+          .absolute { position: absolute; }
+          .gap-1 { gap: 0.25rem; }
+          .gap-2 { gap: 0.5rem; }
+          .gap-4 { gap: 1rem; }
         `;
         styles.textContent = fallbackStyles;
         shadowRoot?.prepend(styles);
+        console.log('Applied fallback styles with essential Tailwind utilities');
       });
   } else {
     // Fallback for browsers that don't support Shadow DOM
