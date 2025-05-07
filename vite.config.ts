@@ -66,6 +66,13 @@ export default defineConfig({
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM'
+        },
+        assetFileNames: (assetInfo) => {
+          // Place CSS files directly in the output directory, not in /assets/
+          if (assetInfo.name?.endsWith('.css')) {
+            return 'openai-chat-widget.css';
+          }
+          return 'assets/[name]-[hash][extname]';
         }
       }
     },

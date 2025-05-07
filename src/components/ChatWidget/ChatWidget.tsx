@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import './ChatWidget.css';
+// Import is not needed as we're injecting CSS directly into Shadow DOM
+// import './ChatWidget.css';
 
 import { ChatProvider } from './ChatContext';
 import { ChatToggleButton } from './ChatToggleButton';
