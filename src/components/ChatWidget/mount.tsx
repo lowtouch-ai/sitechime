@@ -46,37 +46,46 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
     // Create a style element for custom styles
     const customStyles = document.createElement('style');
     
-    // Add the essential custom styles directly
-    customStyles.textContent = `
-      @keyframes slideIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      @keyframes bounce {
-        0%, 80%, 100% { transform: translateY(0); }
-        40% { transform: translateY(-6px); }
-      }
-      .chat-window-enter { animation: slideIn 0.3s ease-out forwards; }
-      .message-enter { animation: fadeIn 0.3s ease-out forwards; }
-      .chat-widget { position: fixed; z-index: 1000; bottom: 20px; display: flex; flex-direction: column; }
-      .chat-widget-right { right: 20px; }
-      .chat-widget-left { left: 20px; }
-      .chat-window { position: fixed; bottom: 80px; right: 20px; min-height: 500px; height: calc(90vh - 100px); width: 400px; display: flex; flex-direction: column; opacity: 0; transform: translateY(20px); transition: opacity 0.3s ease-out, transform 0.3s ease-out; }
-      .chat-window.visible { opacity: 1; transform: translateY(0); }
-      .chat-window.expanded { width: 100% !important; height: 100vh !important; bottom: 0 !important; right: 0 !important; border-radius: 0 !important; max-width: none !important; }
-      .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 1rem; }
-      .chat-message { max-width: 85%; padding: 0.75rem 1rem; border-radius: 1rem; position: relative; user-select: text; }
-      .message-user { align-self: flex-end; border-bottom-right-radius: 0.25rem; margin-left: auto; text-align: right; }
-      .message-assistant { align-self: flex-start; border-bottom-left-radius: 0.25rem; margin-right: auto; text-align: left; }
-      .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 0.5rem; background-color: #f9f9f9; border-radius: 8px; margin-top: 4px; }
-      .typing-indicator-dot { width: 5px; height: 5px; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; background-color: #3b82f6; }
-      .typing-indicator-dot:nth-child(1) { animation-delay: -0.32s; }
-      .typing-indicator-dot:nth-child(2) { animation-delay: -0.16s; }
-    `;
+    // Fetch and inject the full ChatWidget.css content
+    fetch(new URL('./ChatWidget.css', import.meta.url).href)
+      .then(response => response.text())
+      .then(cssText => {
+        customStyles.textContent = cssText;
+      })
+      .catch(error => {
+        console.error('Error loading ChatWidget.css:', error);
+        // Fallback to essential styles if CSS file can't be loaded
+        customStyles.textContent = `
+          @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-6px); }
+          }
+          .chat-window-enter { animation: slideIn 0.3s ease-out forwards; }
+          .message-enter { animation: fadeIn 0.3s ease-out forwards; }
+          .chat-widget { position: fixed; z-index: 1000; bottom: 20px; display: flex; flex-direction: column; }
+          .chat-widget-right { right: 20px; }
+          .chat-widget-left { left: 20px; }
+          .chat-window { position: fixed; bottom: 80px; right: 20px; min-height: 500px; height: calc(90vh - 100px); width: 400px; display: flex; flex-direction: column; opacity: 0; transform: translateY(20px); transition: opacity 0.3s ease-out, transform 0.3s ease-out; }
+          .chat-window.visible { opacity: 1; transform: translateY(0); }
+          .chat-window.expanded { width: 100% !important; height: 100vh !important; bottom: 0 !important; right: 0 !important; border-radius: 0 !important; max-width: none !important; }
+          .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 1rem; }
+          .chat-message { max-width: 85%; padding: 0.75rem 1rem; border-radius: 1rem; position: relative; user-select: text; }
+          .message-user { align-self: flex-end; border-bottom-right-radius: 0.25rem; margin-left: auto; text-align: right; }
+          .message-assistant { align-self: flex-start; border-bottom-left-radius: 0.25rem; margin-right: auto; text-align: left; }
+          .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 0.5rem; background-color: #f9f9f9; border-radius: 8px; margin-top: 4px; }
+          .typing-indicator-dot { width: 5px; height: 5px; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; background-color: #3b82f6; }
+          .typing-indicator-dot:nth-child(1) { animation-delay: -0.32s; }
+          .typing-indicator-dot:nth-child(2) { animation-delay: -0.16s; }
+        `;
+      });
     
     // Add the link and style elements to the shadow DOM
     if (shadowRoot) {
