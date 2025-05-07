@@ -13,6 +13,10 @@ export interface ChatWidgetConfig {
   };
   position?: 'bottom-right' | 'bottom-left';
   configUrl: string;
+  customCSS?: {
+    enabled: boolean;
+    path: string;
+  };
 }
 
 export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
@@ -45,7 +49,12 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
         shadowRoot?.appendChild(linkElement);
       } else {
         fetch(href)
-          .then(response => response.text())
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`Failed to fetch CSS: ${response.status}`);
+            }
+            return response.text();
+          })
           .then(cssText => {
             const styleElement = document.createElement('style');
             styleElement.textContent = cssText;
@@ -63,6 +72,12 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
     
     // Add ChatWidget.css
     addStyleToShadowDOM('./ChatWidget.css', false);
+    
+    // Add custom CSS if enabled in config
+    if (config.customCSS?.enabled && config.customCSS.path) {
+      console.log('Loading custom CSS from:', config.customCSS.path);
+      addStyleToShadowDOM(config.customCSS.path, false);
+    }
   } else {
     // Fallback for browsers without Shadow DOM support
     console.warn('Shadow DOM is not supported in this browser. Using regular DOM instead.');
@@ -71,6 +86,15 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
     reactWrapper = document.createElement('div');
     reactWrapper.id = 'chat-widget-wrapper';
     container.appendChild(reactWrapper);
+    
+    // Add custom CSS if enabled in config
+    if (config.customCSS?.enabled && config.customCSS.path) {
+      console.log('Loading custom CSS in non-shadow DOM mode from:', config.customCSS.path);
+      const linkElement = document.createElement('link');
+      linkElement.rel = 'stylesheet';
+      linkElement.href = config.customCSS.path;
+      document.head.appendChild(linkElement);
+    }
   }
   
   // Create React root and render the component
