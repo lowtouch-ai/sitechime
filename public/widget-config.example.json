@@ -59,7 +59,7 @@
       "host": "https://cloudcontrol-widget-backend.pcpldevelopment.com",
       "version": "v1",
       "timeout": 300000,
-      "model": "webshop:0.5"
+      "model": "ltaisite:0.3"
     }
   },
   "features": {
