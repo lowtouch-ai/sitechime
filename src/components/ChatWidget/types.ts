@@ -2,8 +2,17 @@ export interface ChatTheme {
   primary: string;
   secondary: string;
   text: string;
+  textSecondary: string;
   surface: string;
+  background: string;
   border: string;
+  icons: {
+    primary: string;
+    secondary: string;
+    neutral: string;
+    destructive: string;
+    toggle: string;
+  };
 }
 
 export interface ChatWidgetProps {

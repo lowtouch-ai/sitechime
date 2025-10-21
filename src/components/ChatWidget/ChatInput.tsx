@@ -41,13 +41,17 @@ export const ChatInput: React.FC = () => {  const {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileError, setFileError] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);  const handleSend = () => {
-    if (isLoading) {
+  const [isUploading, setIsUploading] = useState(false);
+  const sendIconColor = theme.icons.primary;
+  const canSendMessage = (inputValue.trim() || ragFiles.length > 0) && termsAccepted;
+
+  const handleSend = () => {
+    if (isLoading) { 
       abortStreaming(); // Just abort the stream without clearing messages
       return;
     }
 
-    if ((inputValue.trim() || ragFiles.length > 0) && termsAccepted) {
+    if (canSendMessage) {
       // Send the message with the RAG files
       sendMessage(
         inputValue, 
@@ -214,15 +218,16 @@ export const ChatInput: React.FC = () => {  const {
                 <span className="text-xs text-gray-500 font-medium truncate max-w-[200px]">
                   {file.name || file.id}
                 </span>
-                <span className="text-xs text-gray-500 ml-1">
+                <span className="text-xs text-gray-500 ml-1"> 
                   ({file.type})
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => removeFile(file.id)}
-                className="text-black bg-transparent hover:text-gray-700 ml-2 rounded-full p-1"
+                className="bg-transparent hover:opacity-80 ml-2 rounded-full p-1"
                 aria-label="Remove file"
+                style={{ color: theme.icons.destructive }}
               >
                 <XMarkIcon className="h-4 w-4" />
               </button>
@@ -258,12 +263,12 @@ export const ChatInput: React.FC = () => {  const {
         {fileUploadEnabled && (
           <button  
             type="button"
-            className="absolute right-12 p-2 rounded-full hover:opacity-80 transition-all bg-transparent text-black"
+            className="absolute right-12 p-2 rounded-full hover:opacity-80 transition-all bg-transparent"
             onClick={handleFileClick}
             disabled={isInputDisabled}
             aria-label="Attach file"
             style={{ 
-              // color: theme.text,
+              color: theme.icons.neutral,
               opacity: isInputDisabled ? 0.6 : 1
             }}
           >
@@ -282,13 +287,13 @@ export const ChatInput: React.FC = () => {  const {
         <button
           className="absolute right-2 p-2 rounded-full hover:opacity-80 transition-all"
           style={{ 
-            backgroundColor: (isLoading || ((inputValue.trim() || ragFiles.length > 0) && termsAccepted)) 
+            backgroundColor: (isLoading || canSendMessage) 
               ? theme.primary 
               : 'transparent',
-            color: (isLoading || ((inputValue.trim() || ragFiles.length > 0) && termsAccepted)) 
-              ? theme.secondary 
-              : theme.text,
-            opacity: isInputDisabled ? 0.6 : 1
+            color: isLoading 
+              ? theme.icons.secondary 
+              : sendIconColor,
+            opacity: isInputDisabled ? 0.6 : (canSendMessage ? 1 : 0.7)
           }}
           onClick={handleSend}
           aria-label={isLoading ? "Stop generating" : "Send message"}

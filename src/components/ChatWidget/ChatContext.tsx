@@ -3,6 +3,7 @@ import { useChat } from '../../hooks/useChat';
 import { fetchWidgetConfig } from '../../services/configService';
 import type { WidgetConfig } from '../../types/widgetConfig';
 import { FileAttachment, RAGFile } from '../../types/chat';
+import type { ChatTheme } from './types';
 // Import the new setConfigUrl functions
 import { setConfigUrl as setRagConfigUrl } from '../../services/ragService';
 import { setConfigUrl as setChatConfigUrl, setExternalHeaders } from '../../services/chatService';
@@ -45,14 +46,7 @@ interface ChatContextValue {
   clearMessages: () => void;
   abortStreaming: () => void;
   retryLastMessage: () => void;
-  theme: {
-    primary: string;
-    secondary: string;
-    background: string;
-    text: string;
-    border: string;
-    surface: string;
-  };
+  theme: ChatTheme;
   botName: string;
   botAvatarUrl: string;
   widgetPosition: 'bottom-right' | 'bottom-left';
@@ -294,13 +288,24 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     setRagFiles(prev => prev.filter(file => file.id !== fileId));
   };
 
-  const theme = {
-    primary: config?.branding.theme.primaryColor || primaryColor,
-    secondary: config?.branding.theme.secondaryColor || secondaryColor,
+  const brandingTheme = config?.branding.theme;
+  const brandingIcons = config?.branding.icons;
+
+  const theme: ChatTheme = {
+    primary: brandingTheme?.primaryColor || primaryColor,
+    secondary: brandingTheme?.secondaryColor || secondaryColor,
     background: '#ffffff',
     surface: '#f9fafb',
     text: '#111827',
-    border: '#e5e7eb'
+    textSecondary: '#71717a',
+    border: '#e5e7eb',
+    icons: {
+      primary: brandingIcons?.primary || brandingTheme?.primaryColor || primaryColor,
+      secondary: brandingIcons?.secondary || brandingTheme?.secondaryColor || secondaryColor,
+      neutral: brandingIcons?.neutral || '#4b5563',
+      destructive: brandingIcons?.destructive || '#dc2626',
+      toggle: brandingIcons?.toggle || brandingTheme?.secondaryColor || secondaryColor,
+    }
   };
 
   const value = {

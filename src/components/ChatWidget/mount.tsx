@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { ChatWidget } from './ChatWidget';
+import type { ChatTheme } from './types';
 // Load the component CSS as a raw string so we can inject it into the shadow root
 // This works in both dev (vite) and production builds.
 import widgetCss from './ChatWidget.css?raw';
@@ -9,13 +10,7 @@ import widgetCss from './ChatWidget.css?raw';
 
 export interface ChatWidgetConfig {
   apiKey: string;
-  theme?: {
-    primary: string;
-    secondary: string;
-    text: string;
-    surface: string;
-    border: string;
-  };
+  theme?: Partial<ChatTheme>;
   position?: 'bottom-right' | 'bottom-left';
   configUrl: string;
   // Optional external headers the host page wants forwarded on behalf of

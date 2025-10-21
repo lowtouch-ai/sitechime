@@ -7,7 +7,7 @@ export const ChatToggleButton: React.FC = () => {
   
   const buttonStyle = {
     backgroundColor: theme.primary,
-    color: theme.secondary,
+    color: theme.icons.toggle,
     width: '60px',
     height: '60px',
     borderRadius: '50%',
@@ -52,7 +52,7 @@ export const ChatToggleButton: React.FC = () => {
           className="w-8 h-8 object-contain"
         />
       ) : (
-        <ChatBubbleLeftRightIcon className="w-8 h-8" />
+        <ChatBubbleLeftRightIcon className="w-8 h-8" style={{ color: theme.icons.toggle }} />
       )}
     </button>
   );

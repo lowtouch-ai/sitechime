@@ -42,6 +42,13 @@
       "secondaryColor": "#000",
       "fontFamily": "Arial"
     },
+    "icons": {
+      "primary": "#f26e11",
+      "secondary": "#111827",
+      "neutral": "#111827",
+      "destructive": "#ef4444",
+      "toggle": "#000000"
+    },
     "poweredBy": {
       "text": "Powered by lowtouch.ai",
       "visible": true

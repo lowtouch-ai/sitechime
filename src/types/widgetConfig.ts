@@ -42,6 +42,13 @@ export interface WidgetConfig {
       secondaryColor: string;
       fontFamily: string;
     };
+    icons?: {
+      primary?: string;
+      secondary?: string;
+      neutral?: string;
+      destructive?: string;
+      toggle?: string;
+    };
     poweredBy: {
       text: string;
       visible: boolean;

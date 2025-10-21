@@ -55,8 +55,8 @@ export const ChatHeader: React.FC = () => {
           aria-label={isExpanded ? "Collapse" : "Expand"}
         >
           {isExpanded ? 
-            <ArrowsPointingInIcon className="w-5 h-5" /> : 
-            <ArrowsPointingOutIcon className="w-5 h-5" />
+            <ArrowsPointingInIcon className="w-5 h-5" style={{ color: theme.icons.neutral }} /> : 
+            <ArrowsPointingOutIcon className="w-5 h-5" style={{ color: theme.icons.neutral }} />
           }
         </button>
         <button 
@@ -64,14 +64,14 @@ export const ChatHeader: React.FC = () => {
           className="p-2 rounded-full hover:bg-gray-100 transition-colors"
           aria-label="Clear chat"
         >
-          <TrashIcon className="w-5 h-5" />
+          <TrashIcon className="w-5 h-5" style={{ color: theme.icons.destructive }} />
         </button>
         <button 
           onClick={handleClose}
           className="p-2 rounded-full hover:bg-gray-100 transition-colors"
           aria-label="Close chat"
         >
-          <XMarkIcon className="w-5 h-5" />
+          <XMarkIcon className="w-5 h-5" style={{ color: theme.icons.destructive }} />
         </button>
       </div>
     </div>
