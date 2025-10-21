@@ -27,16 +27,23 @@
     <script>
         // Initialize the chat widget
         const { mountChatWidget } = SiteChimeWidget;
+        // Example: mount using the APEXA test config and pass example
+        // X-LTAI-EXT headers that will be forwarded to the agent layer.
         mountChatWidget('chat-widget', {
             apiKey: '',
-            configUrl: 'data/widget-config.json',
+            configUrl: 'data/widget-config.apexa.json',
             position: 'bottom-right',
             theme: {
-                primary: '#007bff',
+                primary: '#0b5fff',
                 secondary: '#ffffff',
                 text: '#000000',
                 surface: '#ffffff',
                 border: '#e5e7eb'
+            },
+            externalHeaders: {
+                'X-LTAI-EXT-APEXAIQ-API-TOKEN': 'test-apexa-token',
+                'X-LTAI-EXT-CLIENT-ID': 'apexa-test-tenant',
+                'X-LTAI-EXT-SESSION-CONTEXT': '{"session":"test-session"}'
             }
         });
     </script>

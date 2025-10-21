@@ -1,5 +1,8 @@
 import { createRoot } from 'react-dom/client';
 import { ChatWidget } from './ChatWidget';
+// Load the component CSS as a raw string so we can inject it into the shadow root
+// This works in both dev (vite) and production builds.
+import widgetCss from './ChatWidget.css?raw';
 // Remove direct CSS imports since we'll inject them into shadow DOM
 // import '../../../src/index.css';
 // import './ChatWidget.css';
@@ -15,6 +18,11 @@ export interface ChatWidgetConfig {
   };
   position?: 'bottom-right' | 'bottom-left';
   configUrl: string;
+  // Optional external headers the host page wants forwarded on behalf of
+  // the embedding client (e.g. X-LTAI-EXT-* headers). Values should be
+  // strings and will be attached to outgoing API requests originating
+  // from the widget.
+  externalHeaders?: Record<string, string>;
 }
 
 export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
@@ -82,28 +90,25 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
     shadowRoot.appendChild(linkElement);
     shadowRoot.appendChild(customStyles);
     
-    // Fetch and inject the full ChatWidget.css content
+    // Inject the CSS string directly (works in dev and build). Fall back to fetch if
+    // the raw import isn't available for any reason.
     try {
-      // Use a more direct approach to get the CSS file
-      const cssPath = new URL('./ChatWidget.css', import.meta.url).href;
-      console.log('Attempting to load CSS from:', cssPath);
-      
-      fetch(cssPath)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Failed to load CSS: ${response.status} ${response.statusText}`);
-          }
-          return response.text();
-        })
-        .then(cssText => {
-          console.log('CSS loaded successfully, length:', cssText.length);
-          customStyles.textContent = cssText;
-        })
-        .catch(error => {
-          console.error('Error loading ChatWidget.css:', error);
-        });
-    } catch (error) {
-      console.error('Error setting up CSS fetch:', error);
+      customStyles.textContent = widgetCss;
+      console.log('Injected ChatWidget.css via raw import, length:', widgetCss.length);
+    } catch (err) {
+      console.warn('Raw CSS import failed, falling back to fetch:', err);
+      try {
+        const cssPath = new URL('./ChatWidget.css', import.meta.url).href;
+        fetch(cssPath)
+          .then(response => {
+            if (!response.ok) throw new Error(`Failed to load CSS: ${response.status} ${response.statusText}`);
+            return response.text();
+          })
+          .then(cssText => { customStyles.textContent = cssText; })
+          .catch(e => console.error('Error loading ChatWidget.css via fetch:', e));
+      } catch (e) {
+        console.error('Error setting up CSS fetch fallback:', e);
+      }
     }
     
     // Create a separate style element for zoom styles
@@ -182,8 +187,16 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
   // Create React root on the wrapper element inside shadow DOM or on container if Shadow DOM is not supported
   const root = createRoot(reactWrapper);
   
+  // If the host passed externalHeaders into the mount API, expose them on a
+  // page-level global as well so pages that rely on the global fallback can
+  // benefit without changing embed code.
+  if (typeof window !== 'undefined' && config.externalHeaders) {
+    (window as any).__LTAI_EXT_HEADERS__ = config.externalHeaders;
+    console.log('mountChatWidget: set window.__LTAI_EXT_HEADERS__ with keys', Object.keys(config.externalHeaders));
+  }
+
   // Pass the shadowRoot reference to the ChatWidget component
-  root.render(<ChatWidget {...config} shadowRootRef={shadowRoot} />);
+  root.render(<ChatWidget {...config} shadowRootRef={shadowRoot} externalHeaders={config.externalHeaders} />);
   
   return {
     unmount: () => {

@@ -24,6 +24,8 @@ const DEFAULT_MODEL = 'webshop:0.5';
 
 // Global configUrl that can be set by the application
 let _configUrl: string = '/widget-config.json'; // Default fallback value
+// Optional external headers provided by the host page (e.g. X-LTAI-EXT-*)
+let _externalHeaders: Record<string, string> | undefined;
 
 /**
  * Set the configuration URL to be used by the chat service
@@ -31,6 +33,10 @@ let _configUrl: string = '/widget-config.json'; // Default fallback value
  */
 export const setConfigUrl = (configUrl: string): void => {
   _configUrl = configUrl;
+};
+
+export const setExternalHeaders = (headers: Record<string, string> | undefined): void => {
+  _externalHeaders = headers;
 };
 
 // Helper function to get the full completions URL and model from config
@@ -94,13 +100,27 @@ export const sendChatMessage = async (
       const { model } = await getCompletionsConfig();
       console.log('Using model from config:', model);
 
+      const requestHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'X-Config-Key': `${apiKey}`,
+        // Attach any external headers passed in by the host page. These
+        // are expected to be already validated by the host and are used
+        // for context propagation (e.g. X-LTAI-EXT-*).
+        ...(_externalHeaders || {}),
+      };
+
+      // Dev-friendly debug: log header NAMES being sent (do NOT print sensitive values)
+      try {
+        console.log('sendChatMessage: sending headers ->', Object.keys(requestHeaders));
+        console.log('sendChatMessage: external header keys ->', Object.keys(_externalHeaders || {}));
+      } catch (e) {
+        /* ignore logging errors */
+      }
+
       const response = await fetch(mergedConfig.endpoint!, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'X-Config-Key': `${apiKey}`,
-        },
+        headers: requestHeaders,
         body: JSON.stringify({
           model: model, // Use model from config instead of hardcoded value
           messages,
@@ -131,7 +151,7 @@ export const sendChatMessage = async (
             }
 
             const chunk = decoder.decode(value, { stream: true });
-            console.log('Raw chunk received:', chunk);
+            //console.log('Raw chunk received:', chunk);
             
             // Add new chunks to buffer
             buffer += chunk;

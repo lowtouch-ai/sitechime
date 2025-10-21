@@ -5,7 +5,7 @@ import type { WidgetConfig } from '../../types/widgetConfig';
 import { FileAttachment, RAGFile } from '../../types/chat';
 // Import the new setConfigUrl functions
 import { setConfigUrl as setRagConfigUrl } from '../../services/ragService';
-import { setConfigUrl as setChatConfigUrl } from '../../services/chatService';
+import { setConfigUrl as setChatConfigUrl, setExternalHeaders } from '../../services/chatService';
 
 // Updated Message interface matching useChat.ts
 interface Message {
@@ -26,6 +26,7 @@ interface ChatContextProps {
   botName?: string;
   botAvatarUrl?: string;
   shadowRootRef?: ShadowRoot | null; // Add reference to the shadow root
+  externalHeaders?: Record<string, string> | undefined; // Forwarded headers from host page
 }
 
 // Map to track expanded state of thinking sections by message index
@@ -72,6 +73,7 @@ interface ChatContextValue {
   uploadError: string | null;
   apiKey: string; // Add this property to fix the error
   shadowRootRef: ShadowRoot | null; // Add reference to the shadow root
+  externalHeaders?: Record<string, string> | undefined;
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);
@@ -115,6 +117,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   botName = 'AI Assistant',
   botAvatarUrl = '',
   shadowRootRef = null, // Add shadowRootRef prop with default value
+  externalHeaders = undefined,
 }) => {
   const [config, setConfig] = useState<WidgetConfig | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -139,13 +142,40 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     // Set the configUrl for both services
     setRagConfigUrl(configUrl);
     setChatConfigUrl(configUrl);
+    // Pass external headers to the chatService so outgoing requests include them
+    setExternalHeaders(externalHeaders);
   }, [configUrl]);
+
+  // Keep external headers in sync (allow host to update headers during lifecycle).
+  // If the host does not pass `externalHeaders` via props, fall back to a
+  // page-level global `window.__LTAI_EXT_HEADERS__` to make dev testing easier
+  // (set that global in the console before interacting with the widget).
+  useEffect(() => {
+    const globalHeaders = (typeof window !== 'undefined' && (window as any).__LTAI_EXT_HEADERS__)
+      ? (window as any).__LTAI_EXT_HEADERS__ as Record<string, string>
+      : undefined;
+
+    const finalHeaders = externalHeaders ?? globalHeaders;
+    setExternalHeaders(finalHeaders);
+
+    try {
+      console.log('ChatProvider: external headers source ->', externalHeaders ? 'props' : (globalHeaders ? 'window.__LTAI_EXT_HEADERS__' : 'none'));
+      console.log('ChatProvider: external header keys ->', Object.keys(finalHeaders || {}));
+    } catch (e) {
+      /* ignore logging errors */
+    }
+
+    return () => setExternalHeaders(undefined);
+  }, [externalHeaders]);
 
   useEffect(() => {
     const loadConfig = async () => {
       try {
         const widgetConfig = await fetchWidgetConfig(configUrl);
-        setConfig(widgetConfig);
+  setConfig(widgetConfig);
+  // Helpful debug log to confirm the loaded config and branding
+  console.log('Loaded widget configuration from', configUrl);
+  console.log('Branding:', widgetConfig.branding?.theme, widgetConfig.branding?.logo?.url);
         
         // Set initial states based on config
         if (widgetConfig.widget.behavior.initialState === 'expanded') {
@@ -307,6 +337,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     uploadError,
     apiKey, // Add apiKey to the value object
     shadowRootRef // Add shadowRootRef to the value object
+    , externalHeaders
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react';
-// Import is not needed as we're injecting CSS directly into Shadow DOM
-// import './ChatWidget.css';
+// Import CSS as a raw string so we can inject it when the component is
+// rendered directly (dev mode / local preview). When mounted via the
+// UMD `mountChatWidget` function, the Shadow DOM injection path will be
+// used instead and this effect will no-op.
+import widgetCss from './ChatWidget.css?raw';
 
 import { ChatProvider } from './ChatContext';
 import { ChatToggleButton } from './ChatToggleButton';
@@ -21,7 +24,28 @@ const ChatWidgetInner: React.FC = () => {
     setIsExpanded,
     theme,
     showTerms
+  , shadowRootRef
   } = useChatContext();
+
+  // When the widget is rendered directly (no shadowRootRef provided),
+  // inject the ChatWidget.css into document.head so styles appear during
+  // `npm run dev`. Don't inject when a ShadowRoot is present (UMD mount).
+  useEffect(() => {
+    if (typeof document === 'undefined' || shadowRootRef) return;
+
+    const styleId = 'openai-chat-widget-dev-css';
+    if (document.getElementById(styleId)) return;
+
+    const styleEl = document.createElement('style');
+    styleEl.id = styleId;
+    styleEl.textContent = widgetCss;
+    document.head.appendChild(styleEl);
+
+    return () => {
+      const el = document.getElementById(styleId);
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+    };
+  }, [shadowRootRef]);
 
   // Add event listener for ESC key to exit fullscreen mode
   useEffect(() => {
