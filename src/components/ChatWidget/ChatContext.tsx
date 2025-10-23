@@ -23,6 +23,7 @@ interface ChatContextProps {
   position?: 'bottom-right' | 'bottom-left';
   primaryColor?: string;
   secondaryColor?: string;
+  theme?: Partial<ChatTheme>;
   welcomeMessage?: string;
   botName?: string;
   botAvatarUrl?: string;
@@ -107,6 +108,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   position = 'bottom-right',
   primaryColor = '#0066cc',
   secondaryColor = '#ffffff',
+  theme: themeOverride,
   welcomeMessage = 'Hello! How can I help you today?',
   botName = 'AI Assistant',
   botAvatarUrl = '',
@@ -166,10 +168,10 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     const loadConfig = async () => {
       try {
         const widgetConfig = await fetchWidgetConfig(configUrl);
-  setConfig(widgetConfig);
-  // Helpful debug log to confirm the loaded config and branding
-  console.log('Loaded widget configuration from', configUrl);
-  console.log('Branding:', widgetConfig.branding?.theme, widgetConfig.branding?.logo?.url);
+        setConfig(widgetConfig);
+        // Helpful debug log to confirm the loaded config and branding
+        console.log('Loaded widget configuration from', configUrl);
+        console.log('Branding:', widgetConfig.branding?.theme, widgetConfig.branding?.logo?.url);
         
         // Set initial states based on config
         if (widgetConfig.widget.behavior.initialState === 'expanded') {
@@ -291,7 +293,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   const brandingTheme = config?.branding.theme;
   const brandingIcons = config?.branding.icons;
 
-  const theme: ChatTheme = {
+  const baseTheme: ChatTheme = {
     primary: brandingTheme?.primaryColor || primaryColor,
     secondary: brandingTheme?.secondaryColor || secondaryColor,
     background: '#ffffff',
@@ -306,6 +308,15 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
       destructive: brandingIcons?.destructive || '#dc2626',
       toggle: brandingIcons?.toggle || brandingTheme?.secondaryColor || secondaryColor,
     }
+  };
+
+  const theme: ChatTheme = {
+    ...baseTheme,
+    ...(themeOverride || {}),
+    icons: {
+      ...baseTheme.icons,
+      ...(themeOverride?.icons || {}),
+    },
   };
 
   const value = {

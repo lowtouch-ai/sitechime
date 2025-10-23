@@ -19,7 +19,7 @@ export interface ChatWidgetProps {
   apiKey: string;
   configUrl: string;
   position?: 'bottom-right' | 'bottom-left';
-  theme?: ChatTheme;
+  theme?: Partial<ChatTheme>;
   welcomeMessage?: string;
   shadowRootRef?: ShadowRoot | null;
   // Optional external headers passed from the host page for context propagation
