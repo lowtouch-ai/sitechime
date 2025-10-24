@@ -25,12 +25,107 @@
 <body>
     <div id="chat-widget"></div>
     <script>
-        // Initialize the chat widget
         const { mountChatWidget } = SiteChimeWidget;
-        // Example: mount using the APEXA test config and pass example
-        // X-LTAI-EXT headers that will be forwarded to the agent layer.
-        mountChatWidget('chat-widget', {
-            apiKey: '',
+
+        const OIDC_STORAGE_PREFIX = 'oidc.user:';
+
+        const DEFAULT_HEADERS = {
+            'X-LTAI-EXT-APEXAIQ-API-TOKEN': 'test-apexa-token',
+            'X-LTAI-EXT-CLIENT-ID': 'apexa-test-tenant',
+            'X-LTAI-EXT-SESSION-CONTEXT': '{"session":"test-session"}'
+        };
+
+        function findOidcStorageKey() {
+            if (typeof sessionStorage === 'undefined') {
+                console.warn('sessionStorage is not available; falling back to defaults.');
+                return null;
+            }
+
+            for (let index = 0; index < sessionStorage.length; index++) {
+                const key = sessionStorage.key(index);
+                if (key?.startsWith(OIDC_STORAGE_PREFIX)) {
+                    return key;
+                }
+            }
+
+            console.warn(`No sessionStorage key found with prefix "${OIDC_STORAGE_PREFIX}".`);
+            return null;
+        }
+
+        function loadOidcSession(storageKey) {
+            if (!storageKey || typeof sessionStorage === 'undefined') {
+                return null;
+            }
+            try {
+                const storedValue = sessionStorage.getItem(storageKey);
+                if (!storedValue) {
+                    console.warn(`No sessionStorage entry found for key "${storageKey}".`);
+                    return null;
+                }
+                return JSON.parse(storedValue);
+            } catch (error) {
+                console.error('Failed to parse OIDC session storage payload:', error);
+                return null;
+            }
+        }
+
+        function extractClientId(storageKey, oidcSession) {
+            if (storageKey) {
+                const lastColonIndex = storageKey.lastIndexOf(':');
+                if (lastColonIndex !== -1) {
+                    return storageKey.slice(lastColonIndex + 1);
+                }
+            }
+
+            const profile = oidcSession?.profile;
+            const audCandidates = [profile?.aud, oidcSession?.aud, oidcSession?.clientId];
+            for (const candidate of audCandidates) {
+                if (Array.isArray(candidate) && candidate.length > 0) {
+                    return candidate[0];
+                }
+                if (typeof candidate === 'string' && candidate) {
+                    return candidate;
+                }
+            }
+
+            return '';
+        }
+
+        const oidcStorageKey = findOidcStorageKey();
+        const oidcSession = loadOidcSession(oidcStorageKey);
+        const accessToken = oidcSession?.access_token ?? '';
+        const tokenType = oidcSession?.token_type ?? 'Bearer';
+        const profile = oidcSession?.profile ?? {};
+        const clientId = extractClientId(oidcStorageKey, oidcSession);
+
+        const sessionContext = {
+            email: profile.email,
+            name: profile.name ?? profile.nickname,
+            picture: profile.picture,
+            sid: oidcSession?.sid ?? profile.sid,
+            sub: oidcSession?.sub ?? profile.sub,
+            tokenType: tokenType && tokenType !== 'Bearer' ? tokenType : undefined
+        };
+
+        const filteredSessionContext = Object.fromEntries(
+            Object.entries(sessionContext).filter(([, value]) => value != null)
+        );
+
+        const derivedExternalHeaders = {};
+        if (accessToken) {
+            derivedExternalHeaders['X-LTAI-EXT-APEXAIQ-API-TOKEN'] = accessToken;
+        }
+        if (clientId) {
+            derivedExternalHeaders['X-LTAI-EXT-CLIENT-ID'] = clientId;
+        }
+        if (Object.keys(filteredSessionContext).length > 0) {
+            derivedExternalHeaders['X-LTAI-EXT-SESSION-CONTEXT'] = JSON.stringify(filteredSessionContext);
+        }
+
+        console.log('Derived external headers:', derivedExternalHeaders);
+
+        const widgetConfig = {
+            apiKey: accessToken,
             configUrl: 'data/widget-config.apexa.json',
             position: 'bottom-right',
             theme: {
@@ -39,13 +134,13 @@
                 text: '#000000',
                 surface: '#ffffff',
                 border: '#e5e7eb'
-            },
-            externalHeaders: {
-                'X-LTAI-EXT-APEXAIQ-API-TOKEN': 'test-apexa-token',
-                'X-LTAI-EXT-CLIENT-ID': 'apexa-test-tenant',
-                'X-LTAI-EXT-SESSION-CONTEXT': '{"session":"test-session"}'
             }
-        });
+        };
+
+        const hasDerivedHeaders = Object.keys(derivedExternalHeaders).length > 0;
+        widgetConfig.externalHeaders = hasDerivedHeaders ? derivedExternalHeaders : DEFAULT_HEADERS;
+
+        mountChatWidget('chat-widget', widgetConfig);
     </script>
 </body>
 </html>
