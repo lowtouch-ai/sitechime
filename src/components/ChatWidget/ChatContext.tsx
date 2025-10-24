@@ -140,15 +140,15 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     setChatConfigUrl(configUrl);
     // Pass external headers to the chatService so outgoing requests include them
     setExternalHeaders(externalHeaders);
-  }, [configUrl]);
+  }, [configUrl, externalHeaders]);
 
   // Keep external headers in sync (allow host to update headers during lifecycle).
   // If the host does not pass `externalHeaders` via props, fall back to a
   // page-level global `window.__LTAI_EXT_HEADERS__` to make dev testing easier
   // (set that global in the console before interacting with the widget).
   useEffect(() => {
-    const globalHeaders = (typeof window !== 'undefined' && (window as any).__LTAI_EXT_HEADERS__)
-      ? (window as any).__LTAI_EXT_HEADERS__ as Record<string, string>
+    const globalHeaders = (typeof window !== 'undefined' && (window as typeof window & { __LTAI_EXT_HEADERS__?: Record<string, string> }).__LTAI_EXT_HEADERS__)
+      ? (window as typeof window & { __LTAI_EXT_HEADERS__?: Record<string, string> }).__LTAI_EXT_HEADERS__
       : undefined;
 
     const finalHeaders = externalHeaders ?? globalHeaders;
@@ -157,7 +157,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     try {
       console.log('ChatProvider: external headers source ->', externalHeaders ? 'props' : (globalHeaders ? 'window.__LTAI_EXT_HEADERS__' : 'none'));
       console.log('ChatProvider: external header keys ->', Object.keys(finalHeaders || {}));
-    } catch (e) {
+    } catch {
       /* ignore logging errors */
     }
 
@@ -296,11 +296,11 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   const baseTheme: ChatTheme = {
     primary: brandingTheme?.primaryColor || primaryColor,
     secondary: brandingTheme?.secondaryColor || secondaryColor,
-    background: '#ffffff',
-    surface: '#f9fafb',
-    text: '#111827',
-    textSecondary: '#71717a',
-    border: '#e5e7eb',
+    background: brandingTheme?.backgroundColor || '#ffffff',
+    surface: brandingTheme?.surfaceColor || '#f9fafb',
+    text: brandingTheme?.textColor || '#111827',
+    textSecondary: brandingTheme?.textSecondaryColor || '#71717a',
+    border: brandingTheme?.borderColor || '#e5e7eb',
     icons: {
       primary: brandingIcons?.primary || brandingTheme?.primaryColor || primaryColor,
       secondary: brandingIcons?.secondary || brandingTheme?.secondaryColor || secondaryColor,

@@ -11,7 +11,7 @@ function App() {
         configUrl={configUrl}
         position="bottom-right"
         theme={{
-          primary: "#0066cc",
+          // primary: "#0066cc",
           secondary: "#ffffff",
           text: "#000000",
           surface: "#ffffff",

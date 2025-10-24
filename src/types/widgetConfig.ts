@@ -37,10 +37,18 @@ export interface WidgetConfig {
       height?: number;
       width?: number;
     };
+    toggleButton?: {
+      backgroundColor?: string;
+    };
     theme: {
       primaryColor: string;
       secondaryColor: string;
       fontFamily: string;
+      backgroundColor?: string;
+      surfaceColor?: string;
+      borderColor?: string;
+      textColor?: string;
+      textSecondaryColor?: string;
     };
     icons?: {
       primary?: string;

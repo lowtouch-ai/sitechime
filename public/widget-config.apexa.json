@@ -25,10 +25,19 @@
       "height": 32,
       "width": 32
     },
+    "toggleButton": {
+      "backgroundColor": "#fff"
+    },
     "theme": {
       "primaryColor": "#ffffff",
       "secondaryColor": "#ffffff",
-      "fontFamily": "Inter, Arial, sans-serif"
+      "fontFamily": "Inter, Arial, sans-serif",
+
+      "backgroundColor": "#fff",
+      "surfaceColor": "#fff",
+      "borderColor": "#1f2937",
+      "textColor": "#e5e7eb",
+      "textSecondaryColor": "#94a3b8"
     },
     "icons": {
       "primary": "#000",

@@ -5,8 +5,10 @@ import { useChatContext } from './ChatContext';
 export const ChatToggleButton: React.FC = () => {
   const { setIsOpen, isOpen, setIsExpanded, isExpanded, theme, config } = useChatContext();
   
+  const buttonBackground = config?.branding.toggleButton?.backgroundColor || theme.primary;
+
   const buttonStyle = {
-    backgroundColor: theme.primary,
+    backgroundColor: buttonBackground,
     color: theme.icons.toggle,
     width: '60px',
     height: '60px',
