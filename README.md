@@ -10,6 +10,7 @@ A React TypeScript component that provides a chat widget interface for OpenAI's 
 - 📱 Responsive design
 - 🎨 Customizable colors and positions
 - 🤖 OpenAI API integration
+- 🧩 Shadow DOM isolation (no CSS conflicts with host page)
 
 ## Installation
 
@@ -19,35 +20,132 @@ npm install openai-chat-widget
 
 ## Usage
 
+### Option A: HTML embed (UMD)
+
+No build step required. Include scripts and mount the widget.
+
+```html
+<!-- Container -->
+<div id="chat-widget"></div>
+
+<!-- React UMD (required) -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<!-- Chat widget UMD -->
+<script src="/data/chat-widget.umd.js"></script>
+
+<script>
+  const { mountChatWidget } = SiteChimeWidget;
+
+  // Optional: Provide external headers (e.g., from your IdP session)
+  // These headers will be forwarded by the widget to your backend.
+  const externalHeaders = {
+    'X-LTAI-EXT-APEXAIQ-API-TOKEN': 'your-access-token',
+    'X-LTAI-EXT-CLIENT-ID': 'your-tenant-or-client-id',
+    'X-LTAI-EXT-SESSION-CONTEXT': JSON.stringify({ email: 'user@example.com' })
+  };
+
+  // Minimal config; colors are optional. CSS is auto-injected into Shadow DOM.
+  const config = {
+    apiKey: 'your-config-id-or-api-key',
+    configUrl: '/data/widget-config.json',
+    position: 'bottom-right',
+    theme: {
+      primary: '#0b5fff',
+      secondary: '#ffffff',
+      text: '#000000',
+      surface: '#ffffff',
+      border: '#e5e7eb'
+    },
+    externalHeaders // optional
+  };
+
+  mountChatWidget('chat-widget', config);
+</script>
+```
+
+Notes:
+- The widget uses Shadow DOM and injects its own CSS; you do not need to add a stylesheet.
+- If you set `window.__LTAI_EXT_HEADERS__ = { ... }`, the widget will use those headers by default.
+
+### Option B: React component (app integration)
+
 ```tsx
 import { ChatWidget } from 'openai-chat-widget'
 
-function App() {
+export default function App() {
   return (
-    <div>
-      <ChatWidget 
-        apiKey="your-openai-api-key"
-        position="bottom-right"
-        primaryColor="#0066cc"
-        welcomeMessage="👋 Hi there! How can I assist you today?"
-      />
-    </div>
+    <ChatWidget
+      apiKey="your-config-id-or-api-key"
+      configUrl="/data/widget-config.json"
+      position="bottom-right"
+      theme={{ primary: '#0b5fff' }}
+      welcomeMessage="👋 Hi there! How can I assist you today?"
+      externalHeaders={{ 'X-LTAI-EXT-CLIENT-ID': 'example' }}
+    />
   )
 }
 ```
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| apiKey | string | required | Your OpenAI API key |
-| position | 'bottom-right' \| 'bottom-left' | 'bottom-right' | Position of the chat widget |
-| primaryColor | string | '#0066cc' | Primary color for the widget |
-| welcomeMessage | string | 'Hello! How can I help you today?' | Initial message from the assistant |
+Supported props for both integrations:
+
+```ts
+// UMD mount API
+type ChatWidgetConfig = {
+  apiKey: string;
+  configUrl: string;
+  position?: 'bottom-right' | 'bottom-left';
+  theme?: Partial<{
+    primary: string;
+    secondary: string;
+    text: string;
+    textSecondary: string;
+    surface: string;
+    background: string;
+    border: string;
+    icons: {
+      primary: string;
+      secondary: string;
+      neutral: string;
+      destructive: string;
+      toggle: string;
+    };
+  }>;
+  externalHeaders?: Record<string, string>; // optional forwarded headers
+}
+
+// React component props (superset)
+type ChatWidgetProps = ChatWidgetConfig & {
+  welcomeMessage?: string;
+}
+```
+
+### External headers
+
+If your backend expects propagated identity/context, pass them via `externalHeaders` (UMD) or `externalHeaders` prop (React):
+
+```ts
+{
+  'X-LTAI-EXT-APEXAIQ-API-TOKEN': '<access token>',
+  'X-LTAI-EXT-CLIENT-ID': '<client id>',
+  'X-LTAI-EXT-SESSION-CONTEXT': '{"email":"user@example.com","name":"Jane"}'
+}
+```
+
+Alternatively, set a page-global:
+
+```js
+window.__LTAI_EXT_HEADERS__ = { /* same shape as above */ }
+```
 
 ## Configuration
 
-You can customize the widget through the `widget-config.json` file. Example configuration:
+You can customize the widget through a JSON file referenced by `configUrl`.
+
+Example (`public/widget-config.example.json`):
 
 ```json
 {
@@ -61,12 +159,42 @@ You can customize the widget through the `widget-config.json` file. Example conf
       "url": "https://example.com/chat-icon.png",
       "height": 32,
       "width": 32
-    }
+    },
+    "theme": {
+      "primaryColor": "#0b5fff",
+      "secondaryColor": "#ffffff",
+      "backgroundColor": "#ffffff",
+      "surfaceColor": "#ffffff",
+      "borderColor": "#e5e7eb",
+      "textColor": "#111827",
+      "textSecondaryColor": "#71717a"
+    },
+    "icons": {
+      "primary": "#2563eb",
+      "secondary": "#111827",
+      "neutral": "#4b5563",
+      "destructive": "#ef4444",
+      "toggle": "#ffffff"
+    },
+    "poweredBy": { "text": "Powered by lowtouch.ai", "visible": true }
+  },
+  "security": {
+    "api": {
+      "host": "https://your-backend.example.com",
+      "version": "v1",
+      "timeout": 300000
+    },
+    "authentication": { "maxRetries": 3 }
+  },
+  "features": {
+    "fileUpload": { "enabled": true, "maxSize": 5, "allowedTypes": ["image/*", "application/pdf"] }
   }
 }
 ```
 
-The `toggleButtonIcon` is used for the chat button, while `logo` is used for the bot avatar in chat. If `toggleButtonIcon` is not provided, it will fall back to using the `logo`.
+Notes:
+- `toggleButtonIcon` is used for the chat button; `logo` is used for the bot avatar. If `toggleButtonIcon` is not provided, it falls back to `logo`.
+- The widget reads `security.api.host` and will call `<host>/api/openai/api/chat/completions`.
 
 ## Development
 
@@ -88,7 +216,7 @@ npm run build
 
 ## Security Note
 
-Always keep your OpenAI API key secure and never expose it in client-side code. Consider implementing a backend proxy to handle API requests securely.
+Do not expose raw OpenAI API keys in client-side code. The widget is designed to call your backend (configured via `configUrl`) and forward identity/context via `externalHeaders` so your server can authenticate and call OpenAI securely.
 
 ## License
 
