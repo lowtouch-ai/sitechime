@@ -22,8 +22,6 @@ npm install openai-chat-widget
 
 ### Option A: HTML embed (UMD)
 
-No build step required. Include scripts and mount the widget.
-
 ```html
 <!-- Container -->
 <div id="chat-widget"></div>
@@ -32,7 +30,7 @@ No build step required. Include scripts and mount the widget.
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
-<!-- Chat widget UMD -->
+<!-- Chat widget UMD (build step required, can be referenced from different locations) -->
 <script src="/data/chat-widget.umd.js"></script>
 
 <script>
