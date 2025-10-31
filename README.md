@@ -139,6 +139,79 @@ Alternatively, set a page-global:
 window.__LTAI_EXT_HEADERS__ = { /* same shape as above */ }
 ```
 
+### Loading headers from sessionStorage (OIDC)
+
+If your site stores an OIDC session in `sessionStorage`, you can derive `externalHeaders` automatically and pass them to the widget.
+
+```html
+<script>
+  const OIDC_STORAGE_PREFIX = 'oidc.user:'; // adjust if your IdP uses a different key scheme
+
+  function findOidcStorageKey() {
+    if (typeof sessionStorage === 'undefined') return null;
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (key?.startsWith(OIDC_STORAGE_PREFIX)) return key;
+    }
+    return null;
+  }
+
+  function loadOidcSession(storageKey) {
+    if (!storageKey || typeof sessionStorage === 'undefined') return null;
+    try { return JSON.parse(sessionStorage.getItem(storageKey)); } catch { return null; }
+  }
+
+  function extractClientId(storageKey, oidcSession) {
+    if (storageKey) {
+      const i = storageKey.lastIndexOf(':');
+      if (i !== -1) return storageKey.slice(i + 1);
+    }
+    const profile = oidcSession?.profile;
+    const candidates = [profile?.aud, oidcSession?.aud, oidcSession?.clientId];
+    for (const c of candidates) {
+      if (Array.isArray(c) && c.length) return c[0];
+      if (typeof c === 'string' && c) return c;
+    }
+    return '';
+  }
+
+  const key = findOidcStorageKey();
+  const oidc = loadOidcSession(key);
+  const accessToken = oidc?.access_token ?? '';
+  const tokenType = oidc?.token_type ?? 'Bearer';
+  const profile = oidc?.profile ?? {};
+  const clientId = extractClientId(key, oidc);
+
+  const sessionContext = {
+    email: profile.email,
+    name: profile.name ?? profile.nickname,
+    picture: profile.picture,
+    sid: oidc?.sid ?? profile.sid,
+    sub: oidc?.sub ?? profile.sub,
+    tokenType: tokenType && tokenType !== 'Bearer' ? tokenType : undefined
+  };
+  const filtered = Object.fromEntries(Object.entries(sessionContext).filter(([, v]) => v != null));
+
+  const derivedHeaders = {};
+  if (accessToken) derivedHeaders['X-LTAI-EXT-APEXAIQ-API-TOKEN'] = accessToken;
+  if (clientId) derivedHeaders['X-LTAI-EXT-CLIENT-ID'] = clientId;
+  if (Object.keys(filtered).length) derivedHeaders['X-LTAI-EXT-SESSION-CONTEXT'] = JSON.stringify(filtered);
+
+  const widgetConfig = {
+    apiKey: accessToken, // or your config ID, depending on your backend
+    configUrl: '/data/widget-config.json',
+    externalHeaders: Object.keys(derivedHeaders).length ? derivedHeaders : undefined
+  };
+
+  SiteChimeWidget.mountChatWidget('chat-widget', widgetConfig);
+</script>
+```
+
+Notes:
+- Adjust `OIDC_STORAGE_PREFIX` to your IdP/client library if needed.
+- When no OIDC session is found, you can fall back to defaults (e.g., `DEFAULT_HEADERS`) or omit `externalHeaders`.
+- The widget also supports a page-global `window.__LTAI_EXT_HEADERS__` as a fallback.
+
 ## Configuration
 
 You can customize the widget through a JSON file referenced by `configUrl`.
