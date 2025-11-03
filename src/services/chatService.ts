@@ -103,7 +103,7 @@ export const sendChatMessage = async (
       const requestHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'X-Config-Key': `${apiKey}`,
+        // 'X-Config-Key': `${apiKey}`,
         // Attach any external headers passed in by the host page. These
         // are expected to be already validated by the host and are used
         // for context propagation (e.g. X-LTAI-EXT-*).
