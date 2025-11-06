@@ -20,8 +20,9 @@ export const fetchWidgetConfig = async (configUrl: string): Promise<WidgetConfig
 
 
     // Replace the hardcoded API host with the environment variable if available
-    if (import.meta.env.VITE_OPENAI_HOST && config.security?.api?.host) {
-      config.security.api.host = import.meta.env.VITE_OPENAI_HOST;
+    const envHost = import.meta.env.VITE_BACKEND_API_URL || import.meta.env.VITE_OPENAI_HOST;
+    if (envHost) {
+      config.security.api.host = envHost as string;
     }
     
     return config;
