@@ -6,7 +6,7 @@ interface LogEntry {
 }
 
 class LoggerService {
-  private isConsoleEnabled: boolean = true;
+  private isConsoleEnabled: boolean = false;
   private isConfigured: boolean = false;
   private buffer: LogEntry[] = [];
 
