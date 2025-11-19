@@ -76,6 +76,9 @@
       "enabled": true,
       "maxSize": 2,
       "allowedTypes": ["image/*", "application/pdf"]
+    },
+    "logging": {
+      "console": false
     }
   }
 }

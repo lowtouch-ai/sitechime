@@ -1,5 +1,6 @@
 // filepath: j:\CloudControl\openai-chat-widget\src\services\ragService.ts
 import { RAGUploadResponse } from '../types/chat';
+import { Logger } from '../utils/logger';
 
 /**
  * Service for handling Retrieval Augmented Generation (RAG) operations
@@ -29,7 +30,7 @@ const getBaseApiUrl = async (): Promise<string> => {
     const config = await fetchWidgetConfig(_configUrl);
     return `${config.security.api.host}${RAG_API_PATH}`;
   } catch (error) {
-    console.error('Error loading API configuration:', error);
+    Logger.error('Error loading API configuration:', error);
     throw error;
   }
 };
@@ -62,7 +63,7 @@ export const uploadFile = async (file: File, apiKey: string): Promise<RAGUploadR
 
     return await response.json();
   } catch (error) {
-    console.error('Error uploading file:', error);
+    Logger.error('Error uploading file:', error);
     throw error;
   }
 };
@@ -98,7 +99,7 @@ export const addFileToKnowledge = async (
 
     return await response.json();
   } catch (error) {
-    console.error('Error adding file to knowledge:', error);
+    Logger.error('Error adding file to knowledge:', error);
     throw error;
   }
 };
@@ -126,7 +127,7 @@ export const listKnowledgeCollections = async (apiKey: string): Promise<any> => 
 
     return await response.json();
   } catch (error) {
-    console.error('Error listing knowledge collections:', error);
+    Logger.error('Error listing knowledge collections:', error);
     throw error;
   }
 };

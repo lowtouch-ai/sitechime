@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { useChat } from '../../hooks/useChat';
 import { fetchWidgetConfig } from '../../services/configService';
 import type { WidgetConfig } from '../../types/widgetConfig';
+import { Logger } from '../../utils/logger';
 import { FileAttachment, RAGFile } from '../../types/chat';
 import type { ChatTheme } from './types';
 // Import the new setConfigUrl functions
@@ -96,7 +97,7 @@ const recordTermsAcceptance = async (configId: string) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error recording terms acceptance:', error);
+    Logger.error('Error recording terms acceptance:', error);
     // Still allow the user to proceed even if the API call fails
   }
 };
@@ -155,8 +156,8 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     setExternalHeaders(finalHeaders);
 
     try {
-      console.log('ChatProvider: external headers source ->', externalHeaders ? 'props' : (globalHeaders ? 'window.__LTAI_EXT_HEADERS__' : 'none'));
-      console.log('ChatProvider: external header keys ->', Object.keys(finalHeaders || {}));
+      Logger.log('ChatProvider: external headers source ->', externalHeaders ? 'props' : (globalHeaders ? 'window.__LTAI_EXT_HEADERS__' : 'none'));
+      Logger.log('ChatProvider: external header keys ->', Object.keys(finalHeaders || {}));
     } catch {
       /* ignore logging errors */
     }
@@ -169,9 +170,15 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
       try {
         const widgetConfig = await fetchWidgetConfig(configUrl);
         setConfig(widgetConfig);
+
+        // Configure logging based on config
+        if (widgetConfig.features.logging) {
+          Logger.configure({ console: widgetConfig.features.logging.console });
+        }
+
         // Helpful debug log to confirm the loaded config and branding
-        console.log('Loaded widget configuration from', configUrl);
-        console.log('Branding:', widgetConfig.branding?.theme, widgetConfig.branding?.logo?.url);
+        Logger.log('Loaded widget configuration from', configUrl);
+        Logger.log('Branding:', widgetConfig.branding?.theme, widgetConfig.branding?.logo?.url);
         
         // Set initial states based on config
         if (widgetConfig.widget.behavior.initialState === 'expanded') {
@@ -188,8 +195,10 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
           setFileAttachment(null);
         }
       } catch (err) {
+        // Force enable console on configuration error so the user sees it
+        Logger.configure({ console: true });
         setError(err instanceof Error ? err.message : 'Failed to load configuration');
-        console.error('Failed to load widget configuration:', err);
+        Logger.error('Failed to load widget configuration:', err);
       }
     };
 
@@ -207,7 +216,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
 
   // Log whenever messages change to help debug
   useEffect(() => {
-    console.log('ChatContext received updated messages:', messages);
+    Logger.log('ChatContext received updated messages:', messages);
   }, [messages]);
 
   // When messages change, automatically set any new messages with thinking content to expanded
@@ -233,8 +242,8 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
 
   const handleSend = (message: string, fileAttachment?: FileAttachment) => {
     if ((message.trim() || ragFiles.length > 0) && termsAccepted) {
-      console.log('ChatContext: Sending message:', message);
-      console.log('ChatContext: With RAG files:', ragFiles);
+      Logger.log('ChatContext: Sending message:', message);
+      Logger.log('ChatContext: With RAG files:', ragFiles);
       
       // Send message with both file attachment and RAG files
       sendMessage(message, fileAttachment, ragFiles.length > 0 ? ragFiles : undefined);
@@ -268,7 +277,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
       // Save to localStorage so user doesn't have to accept again
       localStorage.setItem(TERMS_ACCEPTED_KEY, 'true');
     } catch (error) {
-      console.error('Error in acceptTerms:', error);
+      Logger.error('Error in acceptTerms:', error);
       // Still allow the user to proceed even if the API call fails
       setTermsAccepted(true);
       setShowTerms(false);

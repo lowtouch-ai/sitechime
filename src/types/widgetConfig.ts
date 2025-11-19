@@ -90,6 +90,7 @@ export interface WidgetConfig {
     logging?: {
       level: 'debug' | 'info' | 'warn' | 'error';
       retention: number;
+      console?: boolean;
     };
     performance?: {
       messageBuffer: number;

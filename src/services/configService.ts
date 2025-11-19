@@ -1,4 +1,5 @@
 import { WidgetConfig } from '../types/widgetConfig';
+import { Logger } from '../utils/logger';
 
 export class ConfigurationError extends Error {
   constructor(message: string) {
@@ -9,7 +10,7 @@ export class ConfigurationError extends Error {
 
 export const fetchWidgetConfig = async (configUrl: string): Promise<WidgetConfig> => {
   try {
-    console.log(`fetchWidgetConfig: fetching widget configuration from ${configUrl}`);
+    Logger.log(`fetchWidgetConfig: fetching widget configuration from ${configUrl}`);
     const response = await fetch(configUrl);
     
     if (!response.ok) {

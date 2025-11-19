@@ -15,6 +15,7 @@ interface ChatServiceConfig {
 
 // Import the fetchWidgetConfig function
 import { fetchWidgetConfig } from './configService';
+import { Logger } from '../utils/logger';
 
 // Hard-coded completions endpoint path
 const COMPLETIONS_API_PATH = '/api/openai/api/chat/completions';
@@ -51,9 +52,9 @@ const getCompletionsConfig = async (): Promise<{ url: string, model: string }> =
     
     return { url, model };
   } catch (error) {
-    console.error('Error loading API configuration:', error);
+    Logger.error('Error loading API configuration:', error);
     // Fallback to defaults if configuration can't be loaded
-    return { 
+    return {  
       url: 'https://api.openai.com/v1/chat/completions',
       model: DEFAULT_MODEL
     };
@@ -72,16 +73,16 @@ export const sendChatMessage = async (
   onChunk?: (chunk: string) => void,
   config: ChatServiceConfig = {}
 ): Promise<string> => {
-  console.log('sendChatMessage called with messages:', messages);
+  Logger.log('sendChatMessage called with messages:', messages);
   
   // Get dynamic endpoint from config if not explicitly provided
   if (!config.endpoint) {
     try {
       const { url } = await getCompletionsConfig();
       config.endpoint = url;
-      console.log('Using dynamic endpoint from config:', config.endpoint);
+      Logger.log('Using dynamic endpoint from config:', config.endpoint);
     } catch (error) {
-      console.warn('Failed to get dynamic endpoint, using default');
+      Logger.warn('Failed to get dynamic endpoint, using default');
     }
   }
   
@@ -90,7 +91,7 @@ export const sendChatMessage = async (
 
   const makeRequest = async (): Promise<string> => {
     try {
-      console.log('Making request to endpoint:', mergedConfig.endpoint);
+      Logger.log('Making request to endpoint:', mergedConfig.endpoint);
       const timeoutSignal = AbortSignal.timeout(mergedConfig.timeoutMs!);
       const signal = mergedConfig.signal 
         ? AbortSignal.any([mergedConfig.signal, timeoutSignal])
@@ -98,7 +99,7 @@ export const sendChatMessage = async (
 
       // Get the model name from configuration
       const { model } = await getCompletionsConfig();
-      console.log('Using model from config:', model);
+      // console.log('Using model from config:', model);
 
       const requestHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -112,8 +113,8 @@ export const sendChatMessage = async (
 
       // Dev-friendly debug: log header NAMES being sent (do NOT print sensitive values)
       try {
-        console.log('sendChatMessage: sending headers ->', Object.keys(requestHeaders));
-        console.log('sendChatMessage: external header keys ->', Object.keys(_externalHeaders || {}));
+        Logger.log('sendChatMessage: sending headers ->', Object.keys(requestHeaders));
+        Logger.log('sendChatMessage: external header keys ->', Object.keys(_externalHeaders || {}));
       } catch (e) {
         /* ignore logging errors */
       }
@@ -130,13 +131,15 @@ export const sendChatMessage = async (
         signal,
       });
 
-      console.log('Response status:', response.status);
+      Logger.log('Response status:', response.status);
+      Logger.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       if (onChunk) {
-        console.log('Starting streaming response processing');
+        Logger.log('Starting streaming response processing');
         const reader = response.body!.getReader();
         const decoder = new TextDecoder();
         let content = '';
@@ -146,7 +149,7 @@ export const sendChatMessage = async (
           while (true) {
             const { done, value } = await reader.read();
             if (done) {
-              console.log('Stream complete');
+              Logger.log('Stream complete');
               break;
             }
 
@@ -155,7 +158,7 @@ export const sendChatMessage = async (
             
             // Add new chunks to buffer
             buffer += chunk;
-            console.log('Current buffer:', buffer);
+            Logger.log('Current buffer:', buffer);
             
             // Process complete messages from the buffer
             while (true) {
@@ -175,7 +178,7 @@ export const sendChatMessage = async (
               
               // Handle special [DONE] message
               if (message === '[DONE]') {
-                console.log('Received [DONE] message');
+                Logger.log('Received [DONE] message');
                 buffer = buffer.slice(messageEnd + 1);
                 continue;
               }
@@ -184,7 +187,7 @@ export const sendChatMessage = async (
                 const parsed = JSON.parse(message);
                 const contentChunk = parsed.choices?.[0]?.delta?.content || '';
                 if (contentChunk) {
-                  console.log('Found content chunk:', contentChunk);
+                  Logger.log('Found content chunk:', contentChunk);
                   onChunk(contentChunk);
                   content += contentChunk;
                 }
@@ -192,7 +195,7 @@ export const sendChatMessage = async (
                 // Remove processed message from buffer
                 buffer = buffer.slice(messageEnd + 1);
               } catch (e) {
-                console.warn('Failed to parse message:', e, 'Message was:', message);
+                Logger.warn('Failed to parse message:', e, 'Message was:', message);
                 // If parsing failed, skip this malformed line
                 buffer = buffer.slice(messageEnd + 1);
                 continue;
@@ -201,32 +204,32 @@ export const sendChatMessage = async (
             
             // Prevent buffer from growing too large
             if (buffer.length > 50000) {
-              console.warn('Buffer too large, clearing');
+              Logger.warn('Buffer too large, clearing');
               buffer = '';
             }
           }
-          console.log('Final accumulated content:', content);
+          Logger.log('Final accumulated content:', content);
           return content;
         } catch (error: unknown) {
-          console.error('Error in stream processing:', error);
+          Logger.error('Error in stream processing:', error);
           if (error instanceof Error && error.name === 'AbortError') {
-            console.log('Stream aborted, canceling reader');
+            Logger.log('Stream aborted, canceling reader');
             reader.cancel();
           }
           throw error;
         }
       } else {
-        console.log('Processing non-streaming response');
+        Logger.log('Processing non-streaming response');
         const data = await response.json();
-        console.log('Non-streaming response data:', data);
+        Logger.log('Non-streaming response data:', data);
         return data.choices[0]?.message?.content || '';
       }
     } catch (error: unknown) {
-      console.error('Request error:', error);
+      Logger.error('Request error:', error);
       if (error instanceof Error && error.name === 'AbortError') throw error;
       
       if (retryCount < mergedConfig.maxRetries!) {
-        console.log(`Retrying request (attempt ${retryCount + 1}/${mergedConfig.maxRetries})`);
+        Logger.log(`Retrying request (attempt ${retryCount + 1}/${mergedConfig.maxRetries})`);
         retryCount++;
         const delay = Math.pow(2, retryCount) * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));

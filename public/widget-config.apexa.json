@@ -54,6 +54,7 @@
     "api": { "host": "http://127.0.0.1:8000", "version": "v1", "timeout": 300000 }
   },
   "features": {
-    "fileUpload": { "enabled": true, "maxSize": 5, "allowedTypes": ["image/*", "application/pdf"] }
+    "fileUpload": { "enabled": true, "maxSize": 5, "allowedTypes": ["image/*", "application/pdf"] },
+    "logging": { "console": false }
   }
 }

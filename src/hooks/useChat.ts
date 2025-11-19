@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { sendChatMessage } from '../services/chatService';
 import { FileAttachment, RAGFile } from '../types/chat';
+import { Logger } from '../utils/logger';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -39,7 +40,7 @@ export const useChat = ({
   // Keep messagesRef in sync with messages state
   useEffect(() => {
     messagesRef.current = messages;
-    console.log('Messages state updated:', messages);
+    Logger.log('Messages state updated:', messages);
   }, [messages]);
 
   // Initialize with welcome message and test thinking message
@@ -57,8 +58,8 @@ export const useChat = ({
   // }, [welcomeMessage]);
 
   const sendMessage = useCallback(async (content: string, fileAttachment?: FileAttachment, ragFiles?: RAGFile[]) => {
-    console.log('sendMessage called with content:', content);
-    console.log('RAG files:', ragFiles);
+    Logger.log('sendMessage called with content:', content);
+    Logger.log('RAG files:', ragFiles);
     
     const userMessage: Message = { 
       role: 'user', 
@@ -67,12 +68,12 @@ export const useChat = ({
       fileAttachment,
       ragFiles
     };
-    console.log('Adding user message:', userMessage);
+    Logger.log('Adding user message:', userMessage);
     
     // First update: Add user message
     setMessages(prev => {
       const updatedMessages = [...prev, userMessage];
-      console.log('Added user message, new messages state:', updatedMessages);
+      Logger.log('Added user message, new messages state:', updatedMessages);
       return updatedMessages;
     });
     
@@ -82,13 +83,13 @@ export const useChat = ({
     abortControllerRef.current = new AbortController();
     
     // Second update: Add empty assistant message that will be updated with streaming content
-    console.log('Adding empty assistant message for streaming');
+    Logger.log('Adding empty assistant message for streaming');
     const assistantMessageId = generateId();
     let currentMessages: Message[] = [];
     
     setMessages(prev => {
       const updatedMessages: Message[] = [...prev, { role: 'assistant', content: '', id: assistantMessageId }];
-      console.log('Added empty assistant message, new messages state:', updatedMessages);
+      Logger.log('Added empty assistant message, new messages state:', updatedMessages);
       currentMessages = [...updatedMessages];
       return updatedMessages;
     });
@@ -109,21 +110,21 @@ export const useChat = ({
         return {role, content};
       });
       
-      console.log('Sending messages to API:', apiMessages);
+      Logger.log('Sending messages to API:', apiMessages);
       
       // Use the most up-to-date messages when making the API call
       await sendChatMessage(
         apiMessages,
         apiKey,
         (chunk: string) => {
-          console.log('Received chunk in useChat:', chunk);
+          Logger.log('Received chunk in useChat:', chunk);
           // Update the last message (which is the assistant's response) with the new chunk
           setMessages(prev => {
             const newMessages = [...prev];
             const lastMessageIndex = newMessages.length - 1;
             if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant') {
               const updatedContent = newMessages[lastMessageIndex].content + chunk;
-              console.log('Updating assistant message content:', updatedContent);
+              Logger.log('Updating assistant message content:', updatedContent);
               // Create a completely new message object to ensure React detects the change
               newMessages[lastMessageIndex] = {
                 ...newMessages[lastMessageIndex],
@@ -132,7 +133,7 @@ export const useChat = ({
                 id: assistantMessageId
               };
             } else {
-              console.warn('Could not find assistant message to update');
+              Logger.warn('Could not find assistant message to update');
             }
             return [...newMessages]; // Return a new array reference
           });
@@ -147,13 +148,13 @@ export const useChat = ({
       );
       
       // Debug: Log final state of messages after streaming is complete
-      console.log('API call completed, final messages state:', messagesRef.current);
+      Logger.log('API call completed, final messages state:', messagesRef.current);
       
     } catch (err) {
-      console.error('Error in sendMessage:', err);
+      Logger.error('Error in sendMessage:', err);
       const error = err as Error;
       if (error.name !== 'AbortError') {
-        console.error('Error sending message:', error);
+        Logger.error('Error sending message:', error);
         setMessages(prev => {
           // Replace the empty assistant message with an error message
           const newMessages = [...prev];
@@ -170,7 +171,7 @@ export const useChat = ({
           } else {
             newMessages.push(errorMessage);
           }
-          console.log('Error occurred, updated messages:', newMessages);
+          Logger.log('Error occurred, updated messages:', newMessages);
           return newMessages;
         });
       }
@@ -205,7 +206,7 @@ export const useChat = ({
       // Remove assistant's response (should be right after the user message)
       if (lastUserMessageIndex < currentMessages.length - 1 && 
           currentMessages[lastUserMessageIndex + 1].role === 'assistant') {
-        console.log('Retrying last message: Removing assistant response');
+        Logger.log('Retrying last message: Removing assistant response');
         // Remove the assistant's response
         setMessages(prev => {
           const newMessages = [...prev];
@@ -215,14 +216,14 @@ export const useChat = ({
       }
       
       // Resend the last user message with its file attachment and RAG files if any
-      console.log('Retrying last message:', lastUserMessage.content);
+      Logger.log('Retrying last message:', lastUserMessage.content);
       sendMessage(
         lastUserMessage.content, 
         lastUserMessage.fileAttachment, 
         lastUserMessage.ragFiles
       );
     } else {
-      console.warn('No user message found to retry');
+      Logger.warn('No user message found to retry');
     }
   }, [sendMessage, isLoading]);
 

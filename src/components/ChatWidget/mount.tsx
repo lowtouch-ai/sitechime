@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import { ChatWidget } from './ChatWidget';
 import type { ChatTheme } from './types';
+import { Logger } from '../../utils/logger';
 // Load the component CSS as a raw string so we can inject it into the shadow root
 // This works in both dev (vite) and production builds.
 import widgetCss from './ChatWidget.css?raw';
@@ -23,7 +24,7 @@ export interface ChatWidgetConfig {
 export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
   const container = document.getElementById(containerId);
   if (!container) {
-    console.error(`Container with id "${containerId}" not found`);
+    Logger.error(`Container with id "${containerId}" not found`);
     return;
   }
 
@@ -89,9 +90,9 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
     // the raw import isn't available for any reason.
     try {
       customStyles.textContent = widgetCss;
-      console.log('Injected ChatWidget.css via raw import, length:', widgetCss.length);
+      Logger.log('Injected ChatWidget.css via raw import, length:', widgetCss.length);
     } catch (err) {
-      console.warn('Raw CSS import failed, falling back to fetch:', err);
+      Logger.warn('Raw CSS import failed, falling back to fetch:', err);
       try {
         const cssPath = new URL('./ChatWidget.css', import.meta.url).href;
         fetch(cssPath)
@@ -100,9 +101,9 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
             return response.text();
           })
           .then(cssText => { customStyles.textContent = cssText; })
-          .catch(e => console.error('Error loading ChatWidget.css via fetch:', e));
+          .catch(e => Logger.error('Error loading ChatWidget.css via fetch:', e));
       } catch (e) {
-        console.error('Error setting up CSS fetch fallback:', e);
+        Logger.error('Error setting up CSS fetch fallback:', e);
       }
     }
     
@@ -116,15 +117,15 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
         zoomStyles.textContent = cssText;
         if (shadowRoot) {
           shadowRoot.appendChild(zoomStyles);
-          console.log('Successfully loaded zoom styles');
+          Logger.log('Successfully loaded zoom styles');
         }
       })
       .catch(error => {
-        console.error('Failed to load zoom styles:', error);
+        Logger.error('Failed to load zoom styles:', error);
       });
   } else {
     // Fallback for browsers that don't support Shadow DOM
-    console.warn('Shadow DOM is not supported in this browser. Chat widget styles may be affected by the page styles.');
+    Logger.warn('Shadow DOM is not supported in this browser. Chat widget styles may be affected by the page styles.');
     
     // Use container directly
     reactWrapper = container;
@@ -187,7 +188,7 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
   // benefit without changing embed code.
   if (typeof window !== 'undefined' && config.externalHeaders) {
     (window as any).__LTAI_EXT_HEADERS__ = config.externalHeaders;
-    console.log('mountChatWidget: set window.__LTAI_EXT_HEADERS__ with keys', Object.keys(config.externalHeaders));
+    Logger.log('mountChatWidget: set window.__LTAI_EXT_HEADERS__ with keys', Object.keys(config.externalHeaders));
   }
 
   // Pass the shadowRoot reference to the ChatWidget component

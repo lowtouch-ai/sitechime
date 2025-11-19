@@ -2,6 +2,7 @@ import React, { useRef, KeyboardEvent, useState, ChangeEvent, useEffect } from '
 import { PaperAirplaneIcon, StopIcon, PaperClipIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { useChatContext } from './ChatContext';
 import { uploadFile } from '../../services/ragService';
+import { Logger } from '../../utils/logger';
 
 export const ChatInput: React.FC = () => {  const { 
     sendMessage, 
@@ -170,7 +171,7 @@ export const ChatInput: React.FC = () => {  const {
         fileInputRef.current.value = '';
       }
     } catch (error) {
-      console.error('Error uploading file:', error);
+      Logger.error('Error uploading file:', error);
       setFileError(error instanceof Error ? error.message : 'Failed to upload file');
     } finally {
       setIsUploading(false);
