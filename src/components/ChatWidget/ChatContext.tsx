@@ -366,9 +366,12 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     abortStreaming,
     retryLastMessage,
     theme,
-    botName: config?.branding.poweredBy.text || botName || 'AI Assistant',
+    botName: config?.branding.botName || botName || 'AI Assistant',
     botAvatarUrl: config?.branding.logo.url || botAvatarUrl || '',
-    botAvatarDimensions: config?.branding.logo ? { width: config.branding.logo.width, height: config.branding.logo.height } : undefined,
+    botAvatarDimensions: config?.branding.logo ? { 
+      width: config.branding.logo.width || 32, 
+      height: config.branding.logo.height || 32 
+    } : undefined,
     toggleButtonDimensions: config?.branding.toggleButtonIcon ? { width: config.branding.toggleButtonIcon.width || 32, height: config.branding.toggleButtonIcon.height || 32 } : undefined,
     widgetPosition,
     inputValue,

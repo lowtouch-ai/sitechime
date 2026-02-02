@@ -42,13 +42,25 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
     reactWrapper.id = 'chat-widget-shadow-wrapper';
     shadowRoot.appendChild(reactWrapper);
     
-    // Create a link element for the main CSS
-    const linkElement = document.createElement('link');
-    linkElement.rel = 'stylesheet';
-    linkElement.href = 'https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css';
+    // Create a script element for Tailwind v3
+    const tailwindScript = document.createElement('script');
+    tailwindScript.src = 'https://cdn.tailwindcss.com';
     
     // Create a style element for custom styles
     const customStyles = document.createElement('style');
+    
+    // Add the script and style elements to the shadow DOM
+    // Note: tailwind JIT script needs to be in the head or near the elements it styles
+    // In Shadow DOM, we might need a different approach for Tailwind v3
+    // For now, let's use the v3 standalone CLI output or stick to a stable v2 if script doesn't work well in Shadow DOM
+    
+    // Actually, Tailwind v3 script doesn't work inside Shadow DOM easily because it scans the document.
+    // Let's use a more modern v2 or a pre-compiled v3 if we had one. 
+    // Since we don't have a pre-compiled one, let's use v2.2.19 but ensure it's loaded correctly.
+    
+    const linkElement = document.createElement('link');
+    linkElement.rel = 'stylesheet';
+    linkElement.href = 'https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css';
     
     // Add the link and style elements to the shadow DOM
     shadowRoot.appendChild(linkElement);

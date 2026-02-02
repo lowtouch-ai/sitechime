@@ -27,6 +27,7 @@
     }
   },
   "branding": {
+    "botName": "AI Assistant",
     "logo": {
       "url": "https://www.apexaiq.com/wp-content/uploads/2021/11/iQ-50x50.png",
       "width": 32,

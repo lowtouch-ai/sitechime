@@ -31,34 +31,44 @@ export const ChatHeader: React.FC = () => {
   const showFullscreen = config?.widget.behavior.allowFullscreen !== false;
   
   return (
-    <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: theme.border }}>
+    <div className="flex items-center justify-between p-4 border-b shadow-sm" style={{ 
+      borderColor: theme.border,
+      backgroundColor: theme.surface 
+    }}>
       <div className="flex items-center space-x-3">
         {botAvatarUrl ? (
-          <img 
-            src={botAvatarUrl}
-            alt={botName}
-            style={{ 
-              width: botAvatarDimensions?.width ? `${botAvatarDimensions.width}px` : '32px', 
-              height: botAvatarDimensions?.height ? `${botAvatarDimensions.height}px` : '32px' 
-            }}
-            className="rounded-full object-cover"
-          />
+          <div className="relative">
+            <img 
+              src={botAvatarUrl}
+              alt={botName}
+              style={{ 
+                width: botAvatarDimensions?.width ? `${botAvatarDimensions.width}px` : '40px', 
+                height: botAvatarDimensions?.height ? `${botAvatarDimensions.height}px` : '40px',
+                borderColor: theme.primary 
+              }}
+              className="rounded-full object-cover border-2 shadow-sm"
+            />
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+          </div>
         ) : (
           <div 
             style={{ 
               backgroundColor: theme.primary, 
               color: theme.secondary,
-              width: botAvatarDimensions?.width ? `${botAvatarDimensions.width}px` : '32px', 
-              height: botAvatarDimensions?.height ? `${botAvatarDimensions.height}px` : '32px' 
+              width: botAvatarDimensions?.width ? `${botAvatarDimensions.width}px` : '40px', 
+              height: botAvatarDimensions?.height ? `${botAvatarDimensions.height}px` : '40px' 
             }}
-            className="rounded-full flex items-center justify-center text-lg font-semibold"
+            className="rounded-full flex items-center justify-center text-xl font-bold shadow-sm"
           >
             {botName.charAt(0)}
           </div>
         )}
         <div>
-          <h3 className="font-medium text-sm">{botName}</h3>
-          <p className="text-xs opacity-70">AI Assistant</p>
+          <h3 className="font-semibold text-sm leading-tight" style={{ color: theme.text }}>{botName}</h3>
+          <div className="flex items-center space-x-1">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            <p className="text-xs opacity-60" style={{ color: theme.text }}>Online</p>
+          </div>
         </div>
       </div>
       <div className="flex items-center space-x-1">

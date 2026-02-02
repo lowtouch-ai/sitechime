@@ -79,11 +79,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     <>
       <div
         className={`chat-message ${
-          role === 'user' ? 'message-user ml-auto' : 'message-assistant mr-auto'
-        }`}
+          role === 'user' ? 'message-user' : 'message-assistant'
+        } shadow-sm transition-all duration-200`}
         style={{
           backgroundColor: role === 'user' ? theme.primary : theme.surface,
           color: role === 'user' ? theme.secondary : theme.text,
+          border: role === 'assistant' ? `1px solid ${theme.border}` : 'none',
         }}
       >
         <MessageAuthor 

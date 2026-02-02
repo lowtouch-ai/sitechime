@@ -27,10 +27,11 @@ export interface WidgetConfig {
     };
   };
   branding: {
+    botName?: string;
     logo: {
       url: string;
-      height: number;
-      width: number;
+      width?: number;
+      height?: number;
     };
     toggleButtonIcon?: {
       url: string;
