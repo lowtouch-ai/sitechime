@@ -59,6 +59,7 @@
     }
   },
   "security": {
+    "apiKey": "YOUR_CONFIG_UUID_HERE",
     "authentication": {
       "maxRetries": 3
     },

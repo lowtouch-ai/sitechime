@@ -52,6 +52,7 @@ export const uploadFile = async (file: File, apiKey: string): Promise<RAGUploadR
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
+        'X-Config-Key': apiKey,
         'Accept': 'application/json',
       },
       body: formData,
@@ -87,6 +88,7 @@ export const addFileToKnowledge = async (
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
+        'X-Config-Key': apiKey,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },

@@ -3,7 +3,7 @@ import { useChat } from '../../hooks/useChat';
 import { fetchWidgetConfig } from '../../services/configService';
 import { WidgetConfig } from '../../types/widgetConfig';
 import { Logger } from '../../utils/logger';
-import { normalizeHost, joinUrl } from '../../utils/url';
+import { joinUrl } from '../../utils/url';
 import { FileAttachment, RAGFile } from '../../types/chat';
 import type { ChatTheme } from './types';
 // Import the new setConfigUrl functions
@@ -20,7 +20,7 @@ interface Message {
 }
 
 interface ChatContextProps {
-  apiKey: string;
+  apiKey?: string;
   configUrl: string;
   position?: 'bottom-right' | 'bottom-left';
   primaryColor?: string;
@@ -117,10 +117,10 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   primaryColor = '#0066cc',
   secondaryColor = '#ffffff',
   theme: themeOverride,
-  welcomeMessage = 'Hello! How can I help you today?',
-  botName = 'AI Assistant',
-  botAvatarUrl = '',
-  shadowRootRef = null, // Add shadowRootRef prop with default value
+  welcomeMessage,
+  botName,
+  botAvatarUrl,
+  shadowRootRef = null,
   externalHeaders = undefined,
 }) => {
   const [config, setConfig] = useState<WidgetConfig | null>(null);
@@ -130,11 +130,13 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   const [inputValue, setInputValue] = useState('');
   const [thinkingExpanded, setThinkingExpanded] = useState<ThinkingExpandedMap>({});
   const [fileAttachment, setFileAttachment] = useState<FileAttachment | null>(null);
-  const [widgetPosition, setWidgetPosition] = useState<'bottom-right' | 'bottom-left'>(position);
+  const [widgetPosition, setWidgetPosition] = useState<'bottom-right' | 'bottom-left'>(position || 'bottom-right');
   
   // RAG file state
   const [ragFiles, setRagFiles] = useState<RAGFile[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  
+  const effectiveApiKey = config?.security.apiKey || apiKey || '';
   
   // Terms and conditions state
   const [termsAccepted, setTermsAccepted] = useState(() => {
@@ -197,9 +199,11 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
         // Show terms only if enabled in config and not previously accepted
         setShowTerms(widgetConfig.widget.terms?.enabled !== false && !termsAccepted);
         
-        // Use position from config if available, otherwise use the prop
+        // Use position from config if available, otherwise use the prop or default
         if (widgetConfig.widget.position?.placement) {
           setWidgetPosition(widgetConfig.widget.position.placement);
+        } else if (position) {
+          setWidgetPosition(position);
         }
         
         // Handle auto-expand behavior
@@ -223,11 +227,11 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     };
 
     loadConfig();
-  }, [configUrl, termsAccepted]);
+  }, [configUrl, position]); // Removed termsAccepted and isOpen from dependencies
 
   const { messages, isLoading, sendMessage, clearMessages, abortStreaming, retryLastMessage } = useChat({
-    apiKey,
-    welcomeMessage: config?.branding.poweredBy.text || welcomeMessage,
+    apiKey: effectiveApiKey,
+    welcomeMessage: config?.branding.poweredBy.text || welcomeMessage || 'Hello! How can I help you today?',
     // Use the host + completions path instead of endpoint
     endpoint: config?.security.api.host ? `${config.security.api.host}/api/openai/api/chat/completions` : undefined,
     timeoutMs: config?.security.api.timeout,
@@ -291,7 +295,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   // Handle terms and conditions accept/decline
   const acceptTerms = async () => {
     try {
-      await recordTermsAcceptance(apiKey, config?.security.api.host); // Use apiKey as configId
+      await recordTermsAcceptance(effectiveApiKey, config?.security.api.host); // Use apiKey as configId
       setTermsAccepted(true);
       setShowTerms(false);
       // Save to localStorage so user doesn't have to accept again
@@ -362,8 +366,8 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     abortStreaming,
     retryLastMessage,
     theme,
-    botName: config?.branding.poweredBy.text || botName,
-    botAvatarUrl: config?.branding.logo.url || botAvatarUrl,
+    botName: config?.branding.poweredBy.text || botName || 'AI Assistant',
+    botAvatarUrl: config?.branding.logo.url || botAvatarUrl || '',
     botAvatarDimensions: config?.branding.logo ? { width: config.branding.logo.width, height: config.branding.logo.height } : undefined,
     toggleButtonDimensions: config?.branding.toggleButtonIcon ? { width: config.branding.toggleButtonIcon.width || 32, height: config.branding.toggleButtonIcon.height || 32 } : undefined,
     widgetPosition,
@@ -382,7 +386,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     addRagFile,
     removeRagFile,
     uploadError,
-    apiKey, // Add apiKey to the value object
+    apiKey: effectiveApiKey,
     shadowRootRef // Add shadowRootRef to the value object
     , externalHeaders
   };

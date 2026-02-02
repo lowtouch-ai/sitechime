@@ -67,6 +67,7 @@ export interface WidgetConfig {
     };
   };
   security: {
+    apiKey: string;
     authentication: {
       maxRetries: number;
     };

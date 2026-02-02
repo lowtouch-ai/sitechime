@@ -16,7 +16,7 @@ export interface ChatTheme {
 }
 
 export interface ChatWidgetProps {
-  apiKey: string;
+  apiKey?: string;
   configUrl: string;
   position?: 'bottom-right' | 'bottom-left';
   theme?: Partial<ChatTheme>;

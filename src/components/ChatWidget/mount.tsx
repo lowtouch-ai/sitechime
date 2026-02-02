@@ -10,7 +10,7 @@ import widgetCss from './ChatWidget.css?raw';
 // import './ChatWidget.css';
 
 export interface ChatWidgetConfig {
-  apiKey: string;
+  apiKey?: string;
   theme?: Partial<ChatTheme>;
   position?: 'bottom-right' | 'bottom-left';
   configUrl: string;

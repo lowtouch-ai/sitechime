@@ -14,7 +14,7 @@ import { PoweredByFooter } from './PoweredByFooter';
 import { TermsAndConditions } from './TermsAndConditions';
 import type { ChatWidgetProps } from './types';
 import { useChatContext } from './ChatContext';
-import { normalizeHost, joinUrl } from '../../utils/url';
+import { joinUrl } from '../../utils/url';
 import { toPx } from '../../utils/style';
 
 // A wrapper component that uses the context
