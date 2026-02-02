@@ -6,13 +6,14 @@ export const ChatToggleButton: React.FC = () => {
   const { setIsOpen, isOpen, setIsExpanded, isExpanded, theme, config, toggleButtonDimensions } = useChatContext();
   
   const buttonBackground = config?.branding.toggleButton?.backgroundColor || theme.primary;
+  const iconColor = config?.branding.icons?.toggle || theme.secondary;
 
   const buttonStyle = {
     backgroundColor: buttonBackground,
-    color: theme.icons.toggle,
-    width: '60px',
-    height: '60px',
-    borderRadius: '50%',
+    color: iconColor,
+    width: config?.branding.toggleButton?.size ? `${config.branding.toggleButton.size}px` : '60px',
+    height: config?.branding.toggleButton?.size ? `${config.branding.toggleButton.size}px` : '60px',
+    borderRadius: config?.branding.toggleButton?.borderRadius || '50%',
     border: 'none',
     display: 'flex',
     alignItems: 'center',
@@ -63,7 +64,7 @@ export const ChatToggleButton: React.FC = () => {
           className="object-contain"
         />
       ) : (
-        <ChatBubbleLeftRightIcon className="w-8 h-8" style={{ color: theme.icons.toggle }} />
+        <ChatBubbleLeftRightIcon className="w-8 h-8" style={{ color: iconColor }} />
       )}
     </button>
   );

@@ -10,10 +10,11 @@ export const PoweredByFooter: React.FC = () => {
   
   return (
     <div 
-      className="text-center text-xs py-2 px-4 border-t"
+      className="powered-by"
       style={{ 
-        borderColor: theme.border,
-        color: theme.text + '99' // Adding transparency to the text color
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        color: theme.text,
+        backgroundColor: `rgba(255, 255, 255, ${theme.glassmorphism.opacity * 0.9})`
       }}
     >
       {config.branding.poweredBy.text}

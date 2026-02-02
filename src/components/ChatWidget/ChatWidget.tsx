@@ -100,7 +100,7 @@ const ChatWidgetInner: React.FC = () => {
     position: 'fixed',
     bottom: isExpanded ? '0' : toPx(config?.widget.position.offset.vertical || 20),
     [widgetPosition === 'bottom-right' ? 'right' : 'left']: isExpanded ? '0' : toPx(config?.widget.position.offset.horizontal || 20),
-    zIndex: 9999,
+    zIndex: config?.widget.zIndex || 9999,
     width: isExpanded ? '100%' : 'auto',
     height: isExpanded ? '100%' : 'auto',
     pointerEvents: 'none', // Allow clicks to pass through the outer container
@@ -108,7 +108,7 @@ const ChatWidgetInner: React.FC = () => {
 
   // Remove containerStyle width and height since they'll be controlled by CSS classes
   const containerStyle: React.CSSProperties = {
-    backgroundColor: theme.background,
+    backgroundColor: 'transparent',
     overflow: 'hidden',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
     display: isOpen ? 'flex' : 'none', // Use display: none when closed to prevent stealing focus
@@ -127,8 +127,15 @@ const ChatWidgetInner: React.FC = () => {
       <ChatToggleButton />
       
       <div 
-        className={`chat-window ${isOpen ? 'visible' : ''} ${isExpanded ? 'expanded' : ''}`} 
-        style={containerStyle}
+        className={`chat-window ${isOpen ? 'visible' : ''} ${isExpanded ? 'expanded' : ''} glass-effect shadow-2xl overflow-hidden flex flex-col`}
+        style={{
+          ...containerStyle,
+          zIndex: 1001,
+          border: `1px solid ${theme.border}33`, // 20% opacity border
+          backgroundColor: `rgba(255, 255, 255, ${theme.glassmorphism.opacity})`,
+          backdropFilter: `blur(${theme.glassmorphism.blur}) saturate(180%)`,
+          WebkitBackdropFilter: `blur(${theme.glassmorphism.blur}) saturate(180%)`,
+        }}
       >
         <ChatHeader />
         

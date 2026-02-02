@@ -13,10 +13,14 @@ export interface WidgetConfig {
       minHeight: number;
       maxWidth: number;
     };
+    zIndex?: number;
     behavior: {
       initialState: 'minimized' | 'expanded';
       autoExpand: boolean;
       allowFullscreen: boolean;
+      clearChat?: {
+        enabled: boolean;
+      };
     };
     terms: {
       enabled: boolean;
@@ -28,6 +32,7 @@ export interface WidgetConfig {
   };
   branding: {
     botName?: string;
+    headerSubtitle?: string;
     logo: {
       url: string;
       width?: number;
@@ -40,16 +45,23 @@ export interface WidgetConfig {
     };
     toggleButton?: {
       backgroundColor?: string;
+      size?: number;
+      borderRadius?: string;
     };
     theme: {
       primaryColor: string;
       secondaryColor: string;
       fontFamily: string;
       backgroundColor?: string;
-      surfaceColor?: string;
       borderColor?: string;
       textColor?: string;
       textSecondaryColor?: string;
+      glassmorphism?: {
+        opacity: number;
+        blur: string;
+        messageOpacity: number;
+      };
+      messageBorderRadius?: string;
     };
     icons?: {
       primary?: string;

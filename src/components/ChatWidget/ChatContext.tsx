@@ -330,7 +330,6 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     primary: brandingTheme?.primaryColor || primaryColor,
     secondary: brandingTheme?.secondaryColor || secondaryColor,
     background: brandingTheme?.backgroundColor || '#ffffff',
-    surface: brandingTheme?.surfaceColor || '#f9fafb',
     text: brandingTheme?.textColor || '#111827',
     textSecondary: brandingTheme?.textSecondaryColor || '#71717a',
     border: brandingTheme?.borderColor || '#e5e7eb',
@@ -340,8 +339,14 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
       neutral: brandingIcons?.neutral || '#4b5563',
       destructive: brandingIcons?.destructive || '#dc2626',
       toggle: brandingIcons?.toggle || brandingTheme?.secondaryColor || secondaryColor,
-    }
-  };
+    },
+    glassmorphism: {
+        opacity: brandingTheme?.glassmorphism?.opacity ?? 0.95,
+        blur: brandingTheme?.glassmorphism?.blur || '12px',
+        messageOpacity: brandingTheme?.glassmorphism?.messageOpacity ?? 0.90,
+      },
+      messageBorderRadius: brandingTheme?.messageBorderRadius || '1.15rem',
+    };
 
   const theme: ChatTheme = {
     ...baseTheme,
@@ -349,6 +354,10 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     icons: {
       ...baseTheme.icons,
       ...(themeOverride?.icons || {}),
+    },
+    glassmorphism: {
+      ...baseTheme.glassmorphism,
+      ...(themeOverride?.glassmorphism || {}),
     },
   };
 

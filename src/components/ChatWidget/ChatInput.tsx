@@ -194,13 +194,13 @@ export const ChatInput: React.FC = () => {  const {
   const fileUploadEnabled = config?.features.fileUpload?.enabled !== false;
 
   return (
-    <div className="border-t p-4" style={{ 
-      borderColor: theme.border,
-      backgroundColor: theme.surface 
+    <div className="border-t p-2.5 relative z-10" style={{ 
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+      backgroundColor: `rgba(255, 255, 255, ${theme.glassmorphism.opacity * 0.9})`
     }}>
       {fileUploadEnabled && (fileError || uploadError) && (
         <div 
-          className="text-xs text-red-500 mb-2 px-1 font-medium"
+          className="text-xs text-red-500 mb-1.5 px-1 font-medium animate-pulse"
           role="alert"
         >
           {fileError || uploadError}
@@ -208,106 +208,115 @@ export const ChatInput: React.FC = () => {  const {
       )}
       
       {fileUploadEnabled && ragFiles.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-2">
+        <div className="mb-2 flex flex-wrap gap-2">
           {ragFiles.map(file => (
             <div 
               key={file.id}
-              className="flex items-center space-x-2 px-3 py-1.5 rounded-full border shadow-sm transition-all hover:shadow-md"
+              className="flex items-center space-x-2 px-2.5 py-1 rounded-xl border shadow-sm transition-all hover:shadow-md glass-effect"
               style={{ 
-                backgroundColor: theme.background,
-                borderColor: theme.border
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                borderColor: 'rgba(255, 255, 255, 0.3)'
               }}
             >
-              <span className="text-[10px] uppercase font-bold text-blue-500">
-                {file.type}
-              </span>
-              <span className="text-xs font-medium truncate max-w-[150px]" style={{ color: theme.text }}>
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+              <span className="text-[10px] font-bold truncate max-w-[120px]" style={{ color: theme.text }}>
                 {file.name || file.id}
               </span>
               <button
                 type="button"
                 onClick={() => removeFile(file.id)}
-                className="hover:opacity-70 transition-opacity"
+                className="hover:bg-black/5 rounded-md p-0.5 transition-colors"
                 aria-label="Remove file"
                 style={{ color: theme.icons.destructive }}
               >
-                <XMarkIcon className="h-3.5 w-3.5" />
+                <XMarkIcon className="h-3 w-3" />
               </button>
             </div>
           ))}
         </div>
       )}
       
-      <div className="relative flex items-center group">
-        <textarea
-          ref={textareaRef}
-          className="flex-1 resize-none overflow-hidden rounded-2xl border px-4 py-3.5 focus:outline-none transition-all duration-200"
-          style={{ 
-            borderColor: theme.border,
-            minHeight: '48px',
-            maxHeight: '150px',
-            backgroundColor: theme.background,
-            color: theme.text,
-            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)',
-            opacity: isInputDisabled ? 0.6 : 1,
-            paddingRight: fileUploadEnabled ? '85px' : '48px',
-            wordWrap: 'break-word',
-            whiteSpace: 'pre-wrap',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
-          }}
-          placeholder={placeholderText}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onInput={handleTextareaInput}
-          onKeyDown={handleKeyDown}
-          rows={1}
-          disabled={isInputDisabled}
-        />
-        
-        <div className="absolute right-2 flex items-center space-x-1">
-          {fileUploadEnabled && (
-            <button  
-              type="button"
-              className="p-2 rounded-xl hover:bg-gray-100 transition-all text-gray-400 hover:text-gray-600"
-              onClick={handleFileClick}
-              disabled={isInputDisabled}
-              aria-label="Attach file"
-            >
-              <PaperClipIcon className="h-5 w-5" />
-              <input 
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept={config?.features.fileUpload?.allowedTypes?.join(',') || ".txt,.pdf,application/pdf,text/plain"}
-                disabled={isInputDisabled}
-              />
-            </button>
-          )}
-          
-          <button
-            className="p-2 rounded-xl transition-all duration-200 shadow-sm"
+      <div className="flex items-end gap-2">
+        <div className="relative flex-1 flex items-center">
+          <textarea
+            ref={textareaRef}
+            className="w-full resize-none overflow-hidden border px-3 py-2.5 focus:outline-none transition-all duration-300 shadow-sm group-focus-within:shadow-md group-focus-within:border-blue-400/50 text-sm"
             style={{ 
-              backgroundColor: (isLoading || canSendMessage) 
-                ? theme.primary 
-                : 'transparent',
-              color: (isLoading || canSendMessage)
-                ? theme.secondary
-                : theme.icons.neutral,
-              opacity: isInputDisabled ? 0.6 : (canSendMessage || isLoading ? 1 : 0.4)
+              borderColor: 'rgba(255, 255, 255, 0.4)',
+              minHeight: '40px',
+              maxHeight: '120px',
+              backgroundColor: `rgba(255, 255, 255, ${theme.glassmorphism.messageOpacity})`,
+              color: theme.text,
+              opacity: isInputDisabled ? 0.6 : 1,
+              paddingRight: fileUploadEnabled ? '36px' : '12px',
+              wordWrap: 'break-word',
+              whiteSpace: 'pre-wrap',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              lineHeight: '1.4',
+              backdropFilter: `blur(${theme.glassmorphism.blur})`,
+              WebkitBackdropFilter: `blur(${theme.glassmorphism.blur})`,
+              borderRadius: theme.messageBorderRadius,
             }}
-            onClick={handleSend}
-            aria-label={isLoading ? "Stop generating" : "Send message"}
-            disabled={isInputDisabled && !isLoading}
-          >
-            {isLoading ? (
-              <StopIcon className="h-5 w-5" />
-            ) : (
-              <PaperAirplaneIcon className="h-5 w-5" />
-            )}
-          </button>
+            placeholder={placeholderText}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onInput={handleTextareaInput}
+            onKeyDown={handleKeyDown}
+            rows={1}
+            disabled={isInputDisabled}
+          />
+          
+          {fileUploadEnabled && (
+            <div className="absolute right-1 flex items-center">
+              <button  
+                type="button"
+                className="p-1.5 rounded-lg hover:bg-black/5 active:bg-black/10 transition-all text-gray-400 hover:text-blue-500"
+                onClick={handleFileClick}
+                disabled={isInputDisabled}
+                aria-label="Attach file"
+              >
+                <PaperClipIcon className="h-5 w-5" />
+                <input 
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.txt,.csv,.png,.jpg,.jpeg"
+                  multiple
+                />
+              </button>
+            </div>
+          )}
         </div>
+        
+        <button
+          onClick={handleSend}
+          disabled={!canSendMessage || isUploading}
+          className={`transition-all duration-300 flex items-center justify-center shadow-md active:scale-95 flex-shrink-0 ${
+            canSendMessage && !isUploading 
+              ? 'hover:shadow-lg hover:-translate-y-0.5' 
+              : 'opacity-40 cursor-not-allowed shadow-none'
+          }`}
+          style={{ 
+            backgroundColor: canSendMessage && !isUploading ? theme.primary : theme.border,
+            color: theme.secondary,
+            width: '40px',
+            height: '40px',
+            borderRadius: theme.messageBorderRadius,
+          }}
+          aria-label={isLoading ? "Stop generating" : "Send message"}
+        >
+          {isLoading ? (
+            <div className="flex space-x-1 items-center">
+              <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '0s' }}></span>
+              <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+              <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+            </div>
+          ) : (
+            <PaperAirplaneIcon className="h-5 w-5" />
+          )}
+        </button>
       </div>
     </div>
   );
