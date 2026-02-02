@@ -39,7 +39,7 @@ npm install openai-chat-widget
   // Optional: Provide external headers (e.g., from your IdP session)
   // These headers will be forwarded by the widget to your backend.
   const externalHeaders = {
-    'X-LTAI-EXT-APEXAIQ-API-TOKEN': 'your-access-token',
+    'X-LTAI-EXT-API-TOKEN': 'your-access-token',
     'X-LTAI-EXT-CLIENT-ID': 'your-tenant-or-client-id',
     'X-LTAI-EXT-SESSION-CONTEXT': JSON.stringify({ email: 'user@example.com' })
   };
@@ -127,7 +127,7 @@ If your backend expects propagated identity/context, pass them via `externalHead
 
 ```ts
 {
-  'X-LTAI-EXT-APEXAIQ-API-TOKEN': '<access token>',
+  'X-LTAI-EXT-API-TOKEN': '<access token>',
   'X-LTAI-EXT-CLIENT-ID': '<client id>',
   'X-LTAI-EXT-SESSION-CONTEXT': '{"email":"user@example.com","name":"Jane"}'
 }
@@ -193,7 +193,7 @@ If your site stores an OIDC session in `sessionStorage`, you can derive `externa
   const filtered = Object.fromEntries(Object.entries(sessionContext).filter(([, v]) => v != null));
 
   const derivedHeaders = {};
-  if (accessToken) derivedHeaders['X-LTAI-EXT-APEXAIQ-API-TOKEN'] = accessToken;
+  if (accessToken) derivedHeaders['X-LTAI-EXT-API-TOKEN'] = accessToken;
   if (clientId) derivedHeaders['X-LTAI-EXT-CLIENT-ID'] = clientId;
   if (Object.keys(filtered).length) derivedHeaders['X-LTAI-EXT-SESSION-CONTEXT'] = JSON.stringify(filtered);
 
