@@ -91,29 +91,39 @@
 }
 
 .chat-window {
-  position: fixed;
+  position: absolute;
   bottom: 80px;
-  right: 20px;
+  right: 0;
   min-height: 500px;
   height: calc(90vh - 100px);
   width: 400px;
   display: flex;
   flex-direction: column;
   opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
   transform: translateY(20px);
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out, width 0.3s ease-out, height 0.3s ease-out, bottom 0.3s ease-out, right 0.3s ease-out;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0.3s, width 0.3s ease-out, height 0.3s ease-out, bottom 0.3s ease-out, right 0.3s ease-out;
 }
 
 .chat-window.visible {
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
   transform: translateY(0);
 }
 
+.chat-widget-left .chat-window {
+  right: auto;
+  left: 0;
+}
+
 .chat-window.expanded {
-  width: 100% !important;
+  width: 100vw !important;
   height: 100vh !important;
   bottom: 0 !important;
   right: 0 !important;
+  left: 0 !important;
   border-radius: 0 !important;
   max-width: none !important;
 }

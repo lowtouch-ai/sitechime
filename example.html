@@ -30,8 +30,8 @@
         const OIDC_STORAGE_PREFIX = 'oidc.user:';
 
         const DEFAULT_HEADERS = {
-            'X-LTAI-EXT-APEXAIQ-API-TOKEN': 'test-apexa-token',
-            'X-LTAI-EXT-CLIENT-ID': 'apexa-test-tenant',
+            'X-LTAI-EXT-AUTH-TOKEN': 'test-auth-token',
+            'X-LTAI-EXT-CLIENT-ID': 'test-tenant',
             'X-LTAI-EXT-SESSION-CONTEXT': '{"session":"test-session"}'
         };
 
@@ -113,7 +113,7 @@
 
         const derivedExternalHeaders = {};
         if (accessToken) {
-            derivedExternalHeaders['X-LTAI-EXT-APEXAIQ-API-TOKEN'] = accessToken;
+            derivedExternalHeaders['X-LTAI-EXT-AUTH-TOKEN'] = accessToken;
         }
         if (clientId) {
             derivedExternalHeaders['X-LTAI-EXT-CLIENT-ID'] = clientId;
@@ -126,10 +126,10 @@
 
         const widgetConfig = {
             // apiKey: accessToken,
-            configUrl: 'data/widget-config.apexa.json',
+            configUrl: '/widget-config.json',
             position: 'bottom-right',
             theme: {
-                primary: '#0b5fff',
+                primary: '#0ea5e9',
                 secondary: '#ffffff',
                 text: '#000000',
                 surface: '#ffffff',

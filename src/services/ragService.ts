@@ -9,6 +9,7 @@ import { Logger } from '../utils/logger';
 
 // Import the fetchWidgetConfig function to get the API host from config
 import { fetchWidgetConfig } from './configService';
+import { joinUrl } from '../utils/url';
 
 // Hard-coded RAG API endpoint path
 const RAG_API_PATH = '/api/openai/api/v1';
@@ -28,7 +29,7 @@ export const setConfigUrl = (configUrl: string): void => {
 const getBaseApiUrl = async (): Promise<string> => {
   try {
     const config = await fetchWidgetConfig(_configUrl);
-    return `${config.security.api.host}${RAG_API_PATH}`;
+    return joinUrl(config.security.api.host, RAG_API_PATH);
   } catch (error) {
     Logger.error('Error loading API configuration:', error);
     throw error;
@@ -47,7 +48,7 @@ export const uploadFile = async (file: File, apiKey: string): Promise<RAGUploadR
 
   try {
     const baseApiUrl = await getBaseApiUrl();
-    const response = await fetch(`${baseApiUrl}/files/`, {
+    const response = await fetch(joinUrl(baseApiUrl, '/files/'), {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -82,7 +83,7 @@ export const addFileToKnowledge = async (
 ): Promise<any> => {
   try {
     const baseApiUrl = await getBaseApiUrl();
-    const response = await fetch(`${baseApiUrl}/knowledge/${knowledgeId}/file/add`, {
+    const response = await fetch(joinUrl(baseApiUrl, `/knowledge/${knowledgeId}/file/add`), {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,

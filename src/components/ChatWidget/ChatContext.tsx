@@ -1,8 +1,9 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useChat } from '../../hooks/useChat';
 import { fetchWidgetConfig } from '../../services/configService';
-import type { WidgetConfig } from '../../types/widgetConfig';
+import { WidgetConfig } from '../../types/widgetConfig';
 import { Logger } from '../../utils/logger';
+import { normalizeHost, joinUrl } from '../../utils/url';
 import { FileAttachment, RAGFile } from '../../types/chat';
 import type { ChatTheme } from './types';
 // Import the new setConfigUrl functions
@@ -51,6 +52,8 @@ interface ChatContextValue {
   theme: ChatTheme;
   botName: string;
   botAvatarUrl: string;
+  botAvatarDimensions?: { width: number; height: number };
+  toggleButtonDimensions?: { width: number; height: number };
   widgetPosition: 'bottom-right' | 'bottom-left';
   inputValue: string;
   setInputValue: (value: string) => void;
@@ -77,9 +80,13 @@ const ChatContext = createContext<ChatContextValue | undefined>(undefined);
 // Local storage key for terms acceptance
 const TERMS_ACCEPTED_KEY = 'chat-widget-terms-accepted';
 
-const recordTermsAcceptance = async (configId: string) => {
+const recordTermsAcceptance = async (configId: string, apiHost?: string) => {
   try {
-    const apiUrl = `${import.meta.env.VITE_BACKEND_API_URL}/api/tnc/accept/`;
+    // Priority: 1. apiHost from config, 2. origin, 3. fallback
+    const host = apiHost || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000');
+    const apiUrl = joinUrl(host, '/api/tnc/accept/');
+    
+    Logger.log(`Recording terms acceptance for configId: ${configId} at ${apiUrl}`);
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -123,6 +130,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   const [inputValue, setInputValue] = useState('');
   const [thinkingExpanded, setThinkingExpanded] = useState<ThinkingExpandedMap>({});
   const [fileAttachment, setFileAttachment] = useState<FileAttachment | null>(null);
+  const [widgetPosition, setWidgetPosition] = useState<'bottom-right' | 'bottom-left'>(position);
   
   // RAG file state
   const [ragFiles, setRagFiles] = useState<RAGFile[]>([]);
@@ -188,6 +196,18 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
         
         // Show terms only if enabled in config and not previously accepted
         setShowTerms(widgetConfig.widget.terms?.enabled !== false && !termsAccepted);
+        
+        // Use position from config if available, otherwise use the prop
+        if (widgetConfig.widget.position?.placement) {
+          setWidgetPosition(widgetConfig.widget.position.placement);
+        }
+        
+        // Handle auto-expand behavior
+        if (widgetConfig.widget.behavior.autoExpand && !isOpen) {
+          setTimeout(() => {
+            setIsOpen(true);
+          }, 1000); // Small delay for better UX
+        }
         
         // Clear any existing RAG files if file upload is disabled
         if (widgetConfig.features.fileUpload?.enabled === false) {
@@ -271,7 +291,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   // Handle terms and conditions accept/decline
   const acceptTerms = async () => {
     try {
-      await recordTermsAcceptance(apiKey); // Use apiKey as configId
+      await recordTermsAcceptance(apiKey, config?.security.api.host); // Use apiKey as configId
       setTermsAccepted(true);
       setShowTerms(false);
       // Save to localStorage so user doesn't have to accept again
@@ -321,7 +341,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
 
   const theme: ChatTheme = {
     ...baseTheme,
-    ...(themeOverride || {}),
+    ...themeOverride,
     icons: {
       ...baseTheme.icons,
       ...(themeOverride?.icons || {}),
@@ -342,9 +362,11 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     abortStreaming,
     retryLastMessage,
     theme,
-    botName: botName,
+    botName: config?.branding.poweredBy.text || botName,
     botAvatarUrl: config?.branding.logo.url || botAvatarUrl,
-    widgetPosition: position,
+    botAvatarDimensions: config?.branding.logo ? { width: config.branding.logo.width, height: config.branding.logo.height } : undefined,
+    toggleButtonDimensions: config?.branding.toggleButtonIcon ? { width: config.branding.toggleButtonIcon.width || 32, height: config.branding.toggleButtonIcon.height || 32 } : undefined,
+    widgetPosition,
     inputValue,
     setInputValue,
     thinkingExpanded,

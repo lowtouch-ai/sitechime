@@ -68,17 +68,12 @@ export interface WidgetConfig {
   };
   security: {
     authentication: {
-      tokenRefreshInterval?: number;
       maxRetries: number;
-    };
-    rateLimit?: {
-      requestsPerMinute: number;
-      maxConcurrentUsers: number;
     };
     api: {
       host: string;
-      version: string;
       timeout: number;
+      model?: string;
     };
   };
   features: {
@@ -88,13 +83,7 @@ export interface WidgetConfig {
       allowedTypes: string[];
     };
     logging?: {
-      level: 'debug' | 'info' | 'warn' | 'error';
-      retention: number;
       console?: boolean;
-    };
-    performance?: {
-      messageBuffer: number;
-      streamingBufferSize: number;
     };
   };
 }

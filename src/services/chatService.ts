@@ -16,6 +16,7 @@ interface ChatServiceConfig {
 // Import the fetchWidgetConfig function
 import { fetchWidgetConfig } from './configService';
 import { Logger } from '../utils/logger';
+import { joinUrl } from '../utils/url';
 
 // Hard-coded completions endpoint path
 const COMPLETIONS_API_PATH = '/api/openai/api/chat/completions';
@@ -44,7 +45,7 @@ export const setExternalHeaders = (headers: Record<string, string> | undefined):
 const getCompletionsConfig = async (): Promise<{ url: string, model: string }> => {
   try {
     const config = await fetchWidgetConfig(_configUrl);
-    const url = `${config.security.api.host}${COMPLETIONS_API_PATH}`;
+    const url = joinUrl(config.security.api.host, COMPLETIONS_API_PATH);
     
     // Check if model name is in the config - looking in security.api section
     // This is a flexible approach that will work even if model is added later

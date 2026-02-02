@@ -28,14 +28,16 @@
   },
   "branding": {
     "logo": {
-      "url": "https://www.apexaiq.com/wp-content/uploads/2021/11/iQ-50x50.png"
+      "url": "https://www.apexaiq.com/wp-content/uploads/2021/11/iQ-50x50.png",
+      "width": 32,
+      "height": 32
     },
     "toggleButton": {
       "backgroundColor": "#0ea5e9"
     },
     "theme": {
-      "primaryColor": "#FFFFFF",
-      "secondaryColor": "#000",
+      "primaryColor": "#0ea5e9",
+      "secondaryColor": "#ffffff",
       "fontFamily": "Arial",
 
       "backgroundColor": "#ffffff",
@@ -66,7 +68,6 @@
     },
     "api": {
       "host": "http://127.0.0.1:8000",
-      "version": "v1",
       "timeout": 300000,
       "model": "webshop:0.5"
     }
