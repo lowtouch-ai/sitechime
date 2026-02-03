@@ -11,7 +11,6 @@ import { ChatHeader } from './ChatHeader';
 import { ChatMessageList } from './ChatMessageList';
 import { ChatInput } from './ChatInput';
 import { PoweredByFooter } from './PoweredByFooter';
-import { TermsAndConditions } from './TermsAndConditions';
 import type { ChatWidgetProps } from './types';
 import { useChatContext } from './ChatContext';
 import { joinUrl } from '../../utils/url';
@@ -25,7 +24,6 @@ const ChatWidgetInner: React.FC = () => {
     isExpanded,
     setIsExpanded,
     theme,
-    showTerms,
     shadowRootRef,
     config
   } = useChatContext();
@@ -139,11 +137,7 @@ const ChatWidgetInner: React.FC = () => {
       >
         <ChatHeader />
         
-        {showTerms ? (
-          <TermsAndConditions />
-        ) : (
-          <ChatMessageList />
-        )}
+        <ChatMessageList />
         
         <ChatInput />
         <PoweredByFooter />

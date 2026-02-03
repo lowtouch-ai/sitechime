@@ -22,13 +22,6 @@ export interface WidgetConfig {
         enabled: boolean;
       };
     };
-    terms: {
-      enabled: boolean;
-      title: string;
-      content: string;
-      acceptButtonText: string;
-      declineButtonText: string;
-    };
   };
   branding: {
     botName?: string;

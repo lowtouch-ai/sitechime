@@ -59,10 +59,6 @@ interface ChatContextValue {
   setInputValue: (value: string) => void;
   thinkingExpanded: ThinkingExpandedMap;
   toggleThinkingExpanded: (messageIndex: number) => void;
-  termsAccepted: boolean;
-  acceptTerms: () => void;
-  declineTerms: () => void;
-  showTerms: boolean;
   fileAttachment: FileAttachment | null;
   setFileAttachment: (file: FileAttachment | null) => void;
   // New RAG-related fields
@@ -76,38 +72,6 @@ interface ChatContextValue {
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);
-
-// Local storage key for terms acceptance
-const TERMS_ACCEPTED_KEY = 'chat-widget-terms-accepted';
-
-const recordTermsAcceptance = async (configId: string, apiHost?: string) => {
-  try {
-    // Priority: 1. apiHost from config, 2. origin, 3. fallback
-    const host = apiHost || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000');
-    const apiUrl = joinUrl(host, '/api/tnc/accept/');
-    
-    Logger.log(`Recording terms acceptance for configId: ${configId} at ${apiUrl}`);
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        config_id: configId
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to record terms acceptance');
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    Logger.error('Error recording terms acceptance:', error);
-    // Still allow the user to proceed even if the API call fails
-  }
-};
 
 export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> = ({
   children,
@@ -138,12 +102,6 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   
   const effectiveApiKey = config?.security.apiKey || apiKey || '';
   
-  // Terms and conditions state
-  const [termsAccepted, setTermsAccepted] = useState(() => {
-    return localStorage.getItem(TERMS_ACCEPTED_KEY) === 'true';
-  });
-  const [showTerms, setShowTerms] = useState(false);
-
   // Configure services with the configUrl when component mounts
   useEffect(() => {
     // Set the configUrl for both services
@@ -195,9 +153,6 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
           setIsExpanded(true);
           setIsOpen(true);
         }
-        
-        // Show terms only if enabled in config and not previously accepted
-        setShowTerms(widgetConfig.widget.terms?.enabled !== false && !termsAccepted);
         
         // Use position from config if available, otherwise use the prop or default
         if (widgetConfig.widget.position?.placement) {
@@ -265,7 +220,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   }, [messages, thinkingExpanded]);
 
   const handleSend = (message: string, fileAttachment?: FileAttachment) => {
-    if ((message.trim() || ragFiles.length > 0) && termsAccepted) {
+    if ((message.trim() || ragFiles.length > 0)) {
       Logger.log('ChatContext: Sending message:', message);
       Logger.log('ChatContext: With RAG files:', ragFiles);
       
@@ -292,76 +247,35 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     }));
   };
 
-  // Handle terms and conditions accept/decline
-  const acceptTerms = async () => {
-    try {
-      await recordTermsAcceptance(effectiveApiKey, config?.security.api.host); // Use apiKey as configId
-      setTermsAccepted(true);
-      setShowTerms(false);
-      // Save to localStorage so user doesn't have to accept again
-      localStorage.setItem(TERMS_ACCEPTED_KEY, 'true');
-    } catch (error) {
-      Logger.error('Error in acceptTerms:', error);
-      // Still allow the user to proceed even if the API call fails
-      setTermsAccepted(true);
-      setShowTerms(false);
-      localStorage.setItem(TERMS_ACCEPTED_KEY, 'true');
-    }
-  };
-
+  // Decline terms (just hide the widget or clear state)
   const declineTerms = () => {
     setIsOpen(false);
   };
 
-  // RAG file management functions
-  const addRagFile = (file: RAGFile) => {
-    setRagFiles(prev => [...prev, file]);
-    setUploadError(null);
-  };
-
-  const removeRagFile = (fileId: string) => {
-    setRagFiles(prev => prev.filter(file => file.id !== fileId));
-  };
-
-  const brandingTheme = config?.branding.theme;
-  const brandingIcons = config?.branding.icons;
-
-  const baseTheme: ChatTheme = {
-    primary: brandingTheme?.primaryColor || primaryColor,
-    secondary: brandingTheme?.secondaryColor || secondaryColor,
-    background: brandingTheme?.backgroundColor || '#ffffff',
-    text: brandingTheme?.textColor || '#111827',
-    textSecondary: brandingTheme?.textSecondaryColor || '#71717a',
-    border: brandingTheme?.borderColor || '#e5e7eb',
-    icons: {
-      primary: brandingIcons?.primary || brandingTheme?.primaryColor || primaryColor,
-      secondary: brandingIcons?.secondary || brandingTheme?.secondaryColor || secondaryColor,
-      neutral: brandingIcons?.neutral || '#4b5563',
-      destructive: brandingIcons?.destructive || '#dc2626',
-      toggle: brandingIcons?.toggle || brandingTheme?.secondaryColor || secondaryColor,
-    },
-    glassmorphism: {
-        opacity: brandingTheme?.glassmorphism?.opacity ?? 0.95,
-        blur: brandingTheme?.glassmorphism?.blur || '12px',
-        messageOpacity: brandingTheme?.glassmorphism?.messageOpacity ?? 0.90,
-      },
-      messageBorderRadius: brandingTheme?.messageBorderRadius || '1.15rem',
-    };
-
   const theme: ChatTheme = {
-    ...baseTheme,
-    ...themeOverride,
-    icons: {
-      ...baseTheme.icons,
-      ...(themeOverride?.icons || {}),
-    },
+    primary: themeOverride?.primary || config?.branding.theme.primaryColor || '#0066cc',
+    secondary: themeOverride?.secondary || config?.branding.theme.secondaryColor || '#ffffff',
+    text: themeOverride?.text || config?.branding.theme.textColor || '#333333',
+    textSecondary: themeOverride?.textSecondary || config?.branding.theme.textSecondaryColor || '#666666',
+    surface: themeOverride?.surface || config?.branding.theme.backgroundColor || '#ffffff',
+    background: themeOverride?.background || config?.branding.theme.backgroundColor || '#f5f5f5',
+    border: themeOverride?.border || config?.branding.theme.borderColor || '#e0e0e0',
     glassmorphism: {
-      ...baseTheme.glassmorphism,
-      ...(themeOverride?.glassmorphism || {}),
+      opacity: config?.branding.theme.glassmorphism?.opacity ?? 0.8,
+      blur: config?.branding.theme.glassmorphism?.blur ?? '10px',
+      messageOpacity: config?.branding.theme.glassmorphism?.messageOpacity ?? 1.0,
     },
+    messageBorderRadius: config?.branding.theme.messageBorderRadius || '12px',
+    icons: {
+      primary: themeOverride?.icons?.primary || config?.branding.icons?.primary || '#0066cc',
+      secondary: themeOverride?.icons?.secondary || config?.branding.icons?.secondary || '#ffffff',
+      neutral: themeOverride?.icons?.neutral || config?.branding.icons?.neutral || '#999999',
+      destructive: themeOverride?.icons?.destructive || config?.branding.icons?.destructive || '#ff3b30',
+      toggle: themeOverride?.icons?.toggle || config?.branding.icons?.toggle || '#ffffff',
+    }
   };
 
-  const value = {
+  const contextValue: ChatContextValue = {
     config,
     error,
     isOpen,
@@ -375,35 +289,37 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     abortStreaming,
     retryLastMessage,
     theme,
-    botName: config?.branding.botName || botName || 'AI Assistant',
-    botAvatarUrl: config?.branding.logo.url || botAvatarUrl || '',
+    botName: botName || config?.branding.botName || 'AI Assistant',
+    botAvatarUrl: botAvatarUrl || config?.branding.logo.url || '',
     botAvatarDimensions: config?.branding.logo ? { 
       width: config.branding.logo.width || 32, 
       height: config.branding.logo.height || 32 
     } : undefined,
-    toggleButtonDimensions: config?.branding.toggleButtonIcon ? { width: config.branding.toggleButtonIcon.width || 32, height: config.branding.toggleButtonIcon.height || 32 } : undefined,
+    toggleButtonDimensions: config?.branding.toggleButtonIcon ? {
+      width: config.branding.toggleButtonIcon.width || 24,
+      height: config.branding.toggleButtonIcon.height || 24
+    } : undefined,
     widgetPosition,
     inputValue,
     setInputValue,
     thinkingExpanded,
     toggleThinkingExpanded,
-    termsAccepted,
-    acceptTerms,
-    declineTerms,
-    showTerms,
     fileAttachment,
     setFileAttachment,
-    // Add RAG-related fields to the context value
     ragFiles,
-    addRagFile,
-    removeRagFile,
+    addRagFile: (file: RAGFile) => setRagFiles(prev => [...prev, file]),
+    removeRagFile: (fileId: string) => setRagFiles(prev => prev.filter(f => f.id !== fileId)),
     uploadError,
     apiKey: effectiveApiKey,
-    shadowRootRef // Add shadowRootRef to the value object
-    , externalHeaders
+    shadowRootRef,
+    externalHeaders
   };
 
-  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
+  return (
+    <ChatContext.Provider value={contextValue}>
+      {children}
+    </ChatContext.Provider>
+  );
 };
 
 export const useChatContext = () => {
