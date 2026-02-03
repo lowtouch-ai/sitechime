@@ -197,7 +197,11 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
         }
         
         // Show terms only if enabled in config and not previously accepted
-        setShowTerms(widgetConfig.widget.terms?.enabled !== false && !termsAccepted);
+        const termsEnabled = widgetConfig.widget.terms?.enabled !== false;
+        if (!termsEnabled) {
+          setTermsAccepted(true);
+        }
+        setShowTerms(termsEnabled && !termsAccepted);
         
         // Use position from config if available, otherwise use the prop or default
         if (widgetConfig.widget.position?.placement) {
