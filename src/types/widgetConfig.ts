@@ -8,10 +8,10 @@ export interface WidgetConfig {
       };
     };
     dimensions: {
-      width: number;
-      height: number;
-      minHeight: number;
-      maxWidth: number;
+      width: number | string;
+      height: number | string;
+      minHeight: number | string;
+      maxWidth: number | string;
     };
     zIndex?: number;
     behavior: {

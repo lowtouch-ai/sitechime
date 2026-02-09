@@ -8,7 +8,7 @@
       }
     },
     "dimensions": {
-      "width": 350,
+      "width": "25vw",
       "height": 600,
       "minHeight": 300,
       "maxWidth": 1200
@@ -31,7 +31,7 @@
     }
   },
   "branding": {
-    "botName": "AI Assistant",
+    "botName": "Ask Apexa",
     "headerSubtitle": "Online Now",
     "logo": {
       "url": "https://www.apexaiq.com/wp-content/uploads/2021/11/iQ-50x50.png",
