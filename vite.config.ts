@@ -7,6 +7,23 @@ export default defineConfig({
   plugins: [
     react(),
     {
+      name: 'serve-public-css',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          // Serve CSS files from public folder with correct MIME type
+          if (req.url?.endsWith('.css') && req.url.startsWith('/custom')) {
+            const cssPath = path.join(__dirname, 'public', req.url);
+            if (fs.existsSync(cssPath)) {
+              res.setHeader('Content-Type', 'text/css');
+              res.end(fs.readFileSync(cssPath, 'utf-8'));
+              return;
+            }
+          }
+          next();
+        });
+      }
+    },
+    {
       name: 'post-build-actions',
       closeBundle: async () => {
         const distDir = path.resolve(__dirname, 'dist');

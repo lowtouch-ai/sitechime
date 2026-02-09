@@ -66,8 +66,8 @@
       "visible": true
     },
     "customCSS": {
-      "enabled": false,
-      "path": "/custom.css"
+      "enabled": true,
+      "path": "http://localhost:5173/custom-widget.css"
     }
   },
   "security": {
