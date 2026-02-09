@@ -1,5 +1,5 @@
 import React, { useRef, KeyboardEvent, useState, ChangeEvent, useEffect } from 'react';
-import { PaperAirplaneIcon, StopIcon, PaperClipIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { PaperAirplaneIcon, PaperClipIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { useChatContext } from './ChatContext';
 import { uploadFile } from '../../services/ragService';
 import { Logger } from '../../utils/logger';

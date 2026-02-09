@@ -67,7 +67,7 @@
     },
     "customCSS": {
       "enabled": true,
-      "path": "http://localhost:5173/custom-widget.css"
+      "path": "/data/custom-widget.css"
     }
   },
   "security": {
@@ -75,7 +75,7 @@
       "maxRetries": 3
     },
     "api": {
-      "host": "http://127.0.0.1:8000",
+      "host": "http://127.0.0.1:8001",
       "timeout": 300000,
       "model": "webshop:0.5"
     }

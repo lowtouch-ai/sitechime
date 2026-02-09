@@ -361,6 +361,24 @@ The custom CSS file (`public/custom-widget.css`) demonstrates:
 - Inspect element to see computed styles
 - Test in different browsers (Chrome, Firefox, Safari)
 
+## Docker
+
+### Build & Run
+```bash
+docker build \
+  --build-arg VITE_OPENAI_HOST=localhost:8080 \
+  --build-arg VITE_BACKEND_API_URL=http://sitechime-bk:8000 \
+  -t sitechime .
+
+docker run -d --name sitechime -p 3000:3000 sitechime
+```
+
+### Build Args
+- `VITE_OPENAI_HOST` - OpenAI-compatible API host (e.g., `localhost:8080`)
+- `VITE_BACKEND_API_URL` - Backend API URL, points to the `sitechime-bk` container (e.g., `http://sitechime-bk:8000`)
+
+The container serves the built app on port 3000 using `serve`.
+
 ## Environment Variables
 
 `.env` file (create from `.env.example`):
