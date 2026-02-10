@@ -6,35 +6,52 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SiteChime is a React TypeScript chat widget that provides an embeddable AI chat interface for websites. It's built as a standalone widget with Shadow DOM isolation, designed to be embedded in any website without CSS conflicts. The widget communicates with a Django backend (in `../sitechime-bk/`) for AI chat functionality.
 
-## Development Commands
+## Development Commands (Docker Only)
 
-### Frontend (this repository)
+All development and deployment runs through Docker containers. Do not run `npm install`, `npm run dev`, or any local Node.js commands directly on the host/VM.
+
+### Start Full Stack
 ```bash
-# Install dependencies
-npm install
+# 1. Start the backend (from the backend repo)
+cd ../sitechime-bk
+docker compose up -d
+# Backend runs on http://127.0.0.1:8001 (host network mode)
 
-# Start development server (Vite)
-npm run dev
-# Runs on http://localhost:5173/
+# 2. Build the frontend Docker image
+docker build \
+  --build-arg VITE_OPENAI_HOST=localhost:8080 \
+  --build-arg VITE_BACKEND_API_URL=http://127.0.0.1:8001 \
+  -t sitechime .
 
-# Build for production
-npm run build
-# Outputs to dist/ with UMD and ES modules
-
-# Lint code
-npm run lint
-
-# Preview production build
-npm run preview
+# 3. Run the frontend container
+docker run -d --name sitechime -p 3000:3000 sitechime
+# Frontend serves on http://localhost:3000
 ```
 
-### Backend (../sitechime-bk/)
+### Rebuild After Code Changes
 ```bash
-# Start Django backend with Docker
-cd ../sitechime-bk
-docker-compose up
+# Stop and remove the old frontend container, then rebuild
+docker rm -f sitechime
+docker build \
+  --build-arg VITE_OPENAI_HOST=localhost:8080 \
+  --build-arg VITE_BACKEND_API_URL=http://127.0.0.1:8001 \
+  -t sitechime .
+docker run -d --name sitechime -p 3000:3000 sitechime
+```
 
-# Backend runs on http://127.0.0.1:8000/
+### Restart Backend
+```bash
+cd ../sitechime-bk
+docker compose restart
+```
+
+### View Logs
+```bash
+# Frontend logs
+docker logs sitechime
+
+# Backend logs
+docker logs sitechime-bk-web-1
 ```
 
 ## Architecture Overview
@@ -75,7 +92,7 @@ Configuration is merged from three sources (lowest to highest precedence):
 
 **Important config sections**:
 - `widget.position.placement` - "bottom-right" or "bottom-left"
-- `security.api.host` - Backend URL (e.g., http://127.0.0.1:8000)
+- `security.api.host` - Backend URL (e.g., http://127.0.0.1:8001)
 - `security.api.model` - AI model to use (e.g., "webshop:0.5")
 - `branding.theme` - Colors, fonts, glassmorphism effects
 - `features.fileUpload` - File attachment configuration
@@ -147,7 +164,7 @@ The project includes specialized test pages for different aspects of widget func
 
 #### 1. **test-widget.html** - Positioning & Responsive Testing
 ```
-http://localhost:5173/test-widget.html
+http://localhost:3000/test-widget.html
 ```
 **Features:**
 - Tests widget positioning (left/right placement)
@@ -166,7 +183,7 @@ http://localhost:5173/test-widget.html
 
 #### 2. **color-test.html** - Theme Color Testing
 ```
-http://localhost:5173/color-test.html
+http://localhost:3000/color-test.html
 ```
 **Features:**
 - Visual color swatch display (#0EA5E9 primary color)
@@ -184,7 +201,7 @@ http://localhost:5173/color-test.html
 
 #### 3. **fullscreen-test.html** - Fullscreen & Custom CSS Testing
 ```
-http://localhost:5173/fullscreen-test.html
+http://localhost:3000/fullscreen-test.html
 ```
 **Features:**
 - Comprehensive fullscreen mode testing
@@ -217,55 +234,17 @@ In `public/widget-config.json`:
   "branding": {
     "customCSS": {
       "enabled": true,
-      "path": "http://localhost:5173/custom-widget.css"
+      "path": "/data/custom-widget.css"
     }
   }
 }
 ```
 
 **Important Notes:**
-- For development, use full URL: `http://localhost:5173/custom-widget.css`
-- For production, use relative path: `/custom.css` (served from backend)
+- Use relative path: `/data/custom-widget.css` (served by the `serve` static server in the Docker container)
+- Custom CSS files placed in `public/` are copied to `dist/` during build, then served from the container
 - CSS is injected into Shadow DOM (no host page conflicts)
 - Custom CSS file: `public/custom-widget.css`
-
-#### Vite Configuration for CSS Serving
-
-**Problem:** Vite dev server serves CSS files from `public/` folder with incorrect MIME type (`text/html` instead of `text/css`), causing browsers to reject the styles.
-
-**Solution:** Custom Vite plugin in `vite.config.ts` that intercepts CSS requests and serves them correctly:
-
-```typescript
-{
-  name: 'serve-public-css',
-  configureServer(server) {
-    server.middlewares.use((req, res, next) => {
-      // Intercept requests for custom CSS files
-      if (req.url?.endsWith('.css') && req.url.startsWith('/custom')) {
-        const cssPath = path.join(__dirname, 'public', req.url);
-        if (fs.existsSync(cssPath)) {
-          res.setHeader('Content-Type', 'text/css'); // Correct MIME type
-          res.end(fs.readFileSync(cssPath, 'utf-8')); // Return CSS content
-          return;
-        }
-      }
-      next(); // Pass to next middleware if not a custom CSS file
-    });
-  }
-}
-```
-
-**Why This is Needed:**
-- Vite expects CSS files to be imported as ES modules (`import './styles.css'`)
-- Custom CSS for Shadow DOM requires loading via `<link href="/custom.css">` (URL-based)
-- Without this middleware, Vite treats `/custom.css` as a route and returns `index.html`
-- This fix ensures CSS files are served with `Content-Type: text/css`
-
-**Important Notes:**
-- This middleware only affects development (Vite dev server)
-- In production, CSS is served by the Django backend with correct MIME types
-- The middleware specifically targets URLs starting with `/custom` to avoid interfering with other assets
-- Files must exist in `public/` folder to be served
 
 #### Custom CSS Structure
 
@@ -294,17 +273,20 @@ The custom CSS file (`public/custom-widget.css`) demonstrates:
 
 ### Testing Workflow
 
-1. **Start Development Environment:**
+1. **Start Docker Environment:**
    ```bash
-   # Terminal 1: Start backend
-   cd ../sitechime-bk && docker-compose up
+   # Start backend
+   cd ../sitechime-bk && docker compose up -d
 
-   # Terminal 2: Start frontend
-   npm run dev
+   # Build and run frontend
+   docker build --build-arg VITE_OPENAI_HOST=localhost:8080 \
+     --build-arg VITE_BACKEND_API_URL=http://127.0.0.1:8001 -t sitechime .
+   docker rm -f sitechime 2>/dev/null
+   docker run -d --name sitechime -p 3000:3000 sitechime
    ```
 
 2. **Basic Functionality Test:**
-   - Open `http://localhost:5173/test-widget.html`
+   - Open `http://localhost:3000/test-widget.html`
    - Verify widget appears in bottom-left
    - Test open/close toggle
    - Send test messages
@@ -317,13 +299,13 @@ The custom CSS file (`public/custom-widget.css`) demonstrates:
    - Test on different screen sizes using DevTools
 
 4. **Theme Color Test:**
-   - Open `http://localhost:5173/color-test.html`
+   - Open `http://localhost:3000/color-test.html`
    - Verify primary color (#0EA5E9) in user messages
    - Check header styling
    - Test interactive element colors
 
 5. **Fullscreen & Custom CSS Test:**
-   - Open `http://localhost:5173/fullscreen-test.html`
+   - Open `http://localhost:3000/fullscreen-test.html`
    - Enable custom CSS in config if desired
    - Test fullscreen expand/collapse
    - Press ESC to exit fullscreen
@@ -333,7 +315,8 @@ The custom CSS file (`public/custom-widget.css`) demonstrates:
 
 **Widget doesn't appear:**
 - Check console for errors (F12 → Console)
-- Verify backend is running on port 8000
+- Verify backend container is running: `docker ps --filter name=sitechime-bk`
+- Verify frontend container is running: `docker ps --filter name=sitechime`
 - Check `widget-config.json` is valid JSON
 - Ensure Shadow DOM is supported in browser
 
@@ -343,11 +326,7 @@ The custom CSS file (`public/custom-widget.css`) demonstrates:
 - Confirm Content-Type is `text/css` (not `text/html`)
 - Check for "🎨 Custom CSS Active" debug badge
 - Hard refresh: Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)
-- If Content-Type is `text/html`: Vite middleware may need adjustment
-  - Check `vite.config.ts` → `serve-public-css` plugin
-  - Verify URL pattern matching in middleware (line 14)
-  - Ensure CSS file exists in `public/` folder
-  - Restart dev server after config changes
+- Ensure CSS file exists in `public/` folder and rebuild the Docker image
 
 **Fullscreen not working:**
 - Verify `widget.behavior.allowFullscreen: true` in config
@@ -363,30 +342,30 @@ The custom CSS file (`public/custom-widget.css`) demonstrates:
 
 ## Docker
 
-### Build & Run
-```bash
-docker build \
-  --build-arg VITE_OPENAI_HOST=localhost:8080 \
-  --build-arg VITE_BACKEND_API_URL=http://sitechime-bk:8000 \
-  -t sitechime .
-
-docker run -d --name sitechime -p 3000:3000 sitechime
-```
+### Architecture
+- **Frontend container** (`sitechime`): Serves the built static app on port 3000 using `serve`
+- **Backend container** (`sitechime-bk-web-1`): Runs Django/Gunicorn on port 8001 with host network mode
+- The frontend is a static SPA — the browser makes API calls directly to the backend at the URL configured in `widget-config.json` (`security.api.host`)
 
 ### Build Args
 - `VITE_OPENAI_HOST` - OpenAI-compatible API host (e.g., `localhost:8080`)
-- `VITE_BACKEND_API_URL` - Backend API URL, points to the `sitechime-bk` container (e.g., `http://sitechime-bk:8000`)
+- `VITE_BACKEND_API_URL` - Backend API URL (e.g., `http://127.0.0.1:8001`)
 
-The container serves the built app on port 3000 using `serve`.
+### .dockerignore
+The `.dockerignore` file excludes `node_modules`, `dist`, `.git`, and `.env` to keep the Docker build context small.
 
-## Environment Variables
+### Backend Configuration
+The backend `.env` file (`../sitechime-bk/.env`) controls:
+- `BENCHMARK_MODE=0` - Set to `0` for real AI responses, `1` for static test responses
+- `OPENAI_PROXY_URL` - URL of the OpenAI-compatible proxy (e.g., `http://localhost:8080`)
+- Backend listens on port **8001** (not 8000)
 
-`.env` file (create from `.env.example`):
-```bash
-VITE_BACKEND_API_URL=http://127.0.0.1:8000/
-```
+### Runtime Config
+The browser loads `widget-config.json` at runtime from the frontend container. The `security.api.host` field in this file determines where the browser sends API requests. Ensure it points to the backend's host-accessible URL (e.g., `http://127.0.0.1:8001`).
 
-This is used as fallback but usually overridden by `widget-config.json`.
+### Tested Configuration Flags
+- **Terms & Conditions** (`widget.terms.enabled`): Set to `true` to show a T&C acceptance dialog before the user can chat. Set to `false` to skip. Verified working — requires Docker rebuild to take effect since `widget-config.json` is baked into the image.
+- **Benchmark Mode** (`BENCHMARK_MODE` in backend `.env`): Set to `0` for real AI responses. Set to `1` for static test responses. Requires `docker compose down && docker compose up -d` (not just `restart`) to pick up `.env` changes.
 
 ## Key Implementation Details
 
@@ -398,9 +377,7 @@ This is used as fallback but usually overridden by `widget-config.json`.
 
 **Custom CSS Implementation:**
 - CSS files are injected via `<link>` element in Shadow DOM
-- For development: Use absolute URL (`http://localhost:5173/custom-widget.css`)
-- For production: Use relative path that resolves to backend host
-- Vite middleware serves CSS with correct MIME type (`text/css`)
+- Use relative path: `/data/custom-widget.css` (served by the Docker container's `serve` static server)
 - Custom styles can override inline styles using `!important`
 
 ### Widget Positioning
@@ -434,9 +411,9 @@ This is used as fallback but usually overridden by `widget-config.json`.
 ## Backend Integration Notes
 
 The Django backend (`../sitechime-bk/`) expects:
-- Runs on port 8000 via Docker Compose
-- PostgreSQL database (port 5432)
-- Redis cache (port 6379/6380)
+- Runs on port 8001 via Docker Compose (host network mode)
+- PostgreSQL database (port 5434, mapped from container's 5432)
+- Redis cache (port 6379)
 - Configuration stored in `JsonData` model with UUID as public config ID
 
 The frontend's `apiKey` prop maps to backend's `JsonData.uuid` field, not an actual secret key.
@@ -461,25 +438,18 @@ The frontend's `apiKey` prop maps to backend's `JsonData.uuid` field, not an act
 
 ### Adding Custom CSS Files for Shadow DOM
 1. Create CSS file in `public/` folder (e.g., `custom-widget.css`)
-2. If filename starts with `custom`, the Vite middleware will serve it automatically
-3. For other filenames, update middleware pattern in `vite.config.ts` (line 14):
-   ```typescript
-   if (req.url?.endsWith('.css') && req.url.startsWith('/your-prefix')) {
-   ```
-4. Update config to point to CSS file:
+2. Update config in `public/widget-config.json` to point to the CSS file:
    ```json
    {
      "branding": {
        "customCSS": {
          "enabled": true,
-         "path": "http://localhost:5173/your-file.css"  // Dev
-         // "path": "/your-file.css"  // Production (served by backend)
+         "path": "/data/custom-widget.css"
        }
      }
    }
    ```
-5. Restart dev server if Vite config was changed
-6. Hard refresh test page to load new CSS
+3. Rebuild the Docker image and restart the container (files in `public/` are included in the build output)
 
 ### Debugging Widget Issues
 1. Enable console logging: `features.logging.console: true` in config
