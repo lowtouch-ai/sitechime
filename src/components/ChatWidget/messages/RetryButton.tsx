@@ -8,19 +8,23 @@ interface RetryButtonProps {
 }
 
 export const RetryButton: React.FC<RetryButtonProps> = ({ onRetry, theme }) => (
-  <div className="flex justify-center">
+  <div className="flex justify-center my-1">
     <button 
       onClick={onRetry}
-      className="retry-button flex items-center justify-center py-1 px-3 text-xs rounded-full border hover:bg-gray-100 transition-colors bg-white"
+      className="retry-button flex items-center justify-center py-1 px-2.5 text-[10px] font-medium rounded-lg border transition-all glass-effect hover:scale-105 active:scale-95 shadow-sm"
       style={{
-        borderColor: theme.border,
-        color: theme.text
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
+        color: theme.text,
+        opacity: 0.9
       }}
       aria-label="Retry last message"
       title="Retry last message"
       data-testid="retry-button"
     >
-      <ArrowPathIcon className="w-3 h-3 mr-1" />
+      <ArrowPathIcon className="w-3 h-3 mr-1.5" />
       <span>Retry last message</span>
     </button>
   </div>

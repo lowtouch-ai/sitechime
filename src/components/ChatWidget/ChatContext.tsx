@@ -1,8 +1,9 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useChat } from '../../hooks/useChat';
 import { fetchWidgetConfig } from '../../services/configService';
-import type { WidgetConfig } from '../../types/widgetConfig';
+import { WidgetConfig } from '../../types/widgetConfig';
 import { Logger } from '../../utils/logger';
+import { joinUrl } from '../../utils/url';
 import { FileAttachment, RAGFile } from '../../types/chat';
 import type { ChatTheme } from './types';
 // Import the new setConfigUrl functions
@@ -19,7 +20,7 @@ interface Message {
 }
 
 interface ChatContextProps {
-  apiKey: string;
+  apiKey?: string;
   configUrl: string;
   position?: 'bottom-right' | 'bottom-left';
   primaryColor?: string;
@@ -51,6 +52,8 @@ interface ChatContextValue {
   theme: ChatTheme;
   botName: string;
   botAvatarUrl: string;
+  botAvatarDimensions?: { width: number; height: number };
+  toggleButtonDimensions?: { width: number; height: number };
   widgetPosition: 'bottom-right' | 'bottom-left';
   inputValue: string;
   setInputValue: (value: string) => void;
@@ -77,9 +80,13 @@ const ChatContext = createContext<ChatContextValue | undefined>(undefined);
 // Local storage key for terms acceptance
 const TERMS_ACCEPTED_KEY = 'chat-widget-terms-accepted';
 
-const recordTermsAcceptance = async (configId: string) => {
+const recordTermsAcceptance = async (configId: string, apiHost?: string) => {
   try {
-    const apiUrl = `${import.meta.env.VITE_BACKEND_API_URL}/api/tnc/accept/`;
+    // Priority: 1. apiHost from config, 2. origin, 3. fallback
+    const host = apiHost || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000');
+    const apiUrl = joinUrl(host, '/api/tnc/accept/');
+    
+    Logger.log(`Recording terms acceptance for configId: ${configId} at ${apiUrl}`);
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -110,10 +117,10 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   primaryColor = '#0066cc',
   secondaryColor = '#ffffff',
   theme: themeOverride,
-  welcomeMessage = 'Hello! How can I help you today?',
-  botName = 'AI Assistant',
-  botAvatarUrl = '',
-  shadowRootRef = null, // Add shadowRootRef prop with default value
+  welcomeMessage,
+  botName,
+  botAvatarUrl,
+  shadowRootRef = null,
   externalHeaders = undefined,
 }) => {
   const [config, setConfig] = useState<WidgetConfig | null>(null);
@@ -123,10 +130,13 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   const [inputValue, setInputValue] = useState('');
   const [thinkingExpanded, setThinkingExpanded] = useState<ThinkingExpandedMap>({});
   const [fileAttachment, setFileAttachment] = useState<FileAttachment | null>(null);
+  const [widgetPosition, setWidgetPosition] = useState<'bottom-right' | 'bottom-left'>(position || 'bottom-right');
   
   // RAG file state
   const [ragFiles, setRagFiles] = useState<RAGFile[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  
+  const effectiveApiKey = config?.security.apiKey || apiKey || '';
   
   // Terms and conditions state
   const [termsAccepted, setTermsAccepted] = useState(() => {
@@ -187,7 +197,25 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
         }
         
         // Show terms only if enabled in config and not previously accepted
-        setShowTerms(widgetConfig.widget.terms?.enabled !== false && !termsAccepted);
+        const termsEnabled = widgetConfig.widget.terms?.enabled !== false;
+        if (!termsEnabled) {
+          setTermsAccepted(true);
+        }
+        setShowTerms(termsEnabled && !termsAccepted);
+        
+        // Use position from config if available, otherwise use the prop or default
+        if (widgetConfig.widget.position?.placement) {
+          setWidgetPosition(widgetConfig.widget.position.placement);
+        } else if (position) {
+          setWidgetPosition(position);
+        }
+        
+        // Handle auto-expand behavior
+        if (widgetConfig.widget.behavior.autoExpand && !isOpen) {
+          setTimeout(() => {
+            setIsOpen(true);
+          }, 1000); // Small delay for better UX
+        }
         
         // Clear any existing RAG files if file upload is disabled
         if (widgetConfig.features.fileUpload?.enabled === false) {
@@ -203,11 +231,11 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     };
 
     loadConfig();
-  }, [configUrl, termsAccepted]);
+  }, [configUrl, position]); // Removed termsAccepted and isOpen from dependencies
 
   const { messages, isLoading, sendMessage, clearMessages, abortStreaming, retryLastMessage } = useChat({
-    apiKey,
-    welcomeMessage: config?.branding.poweredBy.text || welcomeMessage,
+    apiKey: effectiveApiKey,
+    welcomeMessage: config?.branding.poweredBy.text || welcomeMessage || 'Hello! How can I help you today?',
     // Use the host + completions path instead of endpoint
     endpoint: config?.security.api.host ? `${config.security.api.host}/api/openai/api/chat/completions` : undefined,
     timeoutMs: config?.security.api.timeout,
@@ -271,7 +299,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
   // Handle terms and conditions accept/decline
   const acceptTerms = async () => {
     try {
-      await recordTermsAcceptance(apiKey); // Use apiKey as configId
+      await recordTermsAcceptance(effectiveApiKey, config?.security.api.host); // Use apiKey as configId
       setTermsAccepted(true);
       setShowTerms(false);
       // Save to localStorage so user doesn't have to accept again
@@ -306,7 +334,6 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     primary: brandingTheme?.primaryColor || primaryColor,
     secondary: brandingTheme?.secondaryColor || secondaryColor,
     background: brandingTheme?.backgroundColor || '#ffffff',
-    surface: brandingTheme?.surfaceColor || '#f9fafb',
     text: brandingTheme?.textColor || '#111827',
     textSecondary: brandingTheme?.textSecondaryColor || '#71717a',
     border: brandingTheme?.borderColor || '#e5e7eb',
@@ -316,15 +343,25 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
       neutral: brandingIcons?.neutral || '#4b5563',
       destructive: brandingIcons?.destructive || '#dc2626',
       toggle: brandingIcons?.toggle || brandingTheme?.secondaryColor || secondaryColor,
-    }
-  };
+    },
+    glassmorphism: {
+        opacity: brandingTheme?.glassmorphism?.opacity ?? 0.95,
+        blur: brandingTheme?.glassmorphism?.blur || '12px',
+        messageOpacity: brandingTheme?.glassmorphism?.messageOpacity ?? 0.90,
+      },
+      messageBorderRadius: brandingTheme?.messageBorderRadius || '1.15rem',
+    };
 
   const theme: ChatTheme = {
     ...baseTheme,
-    ...(themeOverride || {}),
+    ...themeOverride,
     icons: {
       ...baseTheme.icons,
       ...(themeOverride?.icons || {}),
+    },
+    glassmorphism: {
+      ...baseTheme.glassmorphism,
+      ...(themeOverride?.glassmorphism || {}),
     },
   };
 
@@ -342,9 +379,14 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     abortStreaming,
     retryLastMessage,
     theme,
-    botName: botName,
-    botAvatarUrl: config?.branding.logo.url || botAvatarUrl,
-    widgetPosition: position,
+    botName: config?.branding.botName || botName || 'AI Assistant',
+    botAvatarUrl: config?.branding.logo.url || botAvatarUrl || '',
+    botAvatarDimensions: config?.branding.logo ? { 
+      width: config.branding.logo.width || 32, 
+      height: config.branding.logo.height || 32 
+    } : undefined,
+    toggleButtonDimensions: config?.branding.toggleButtonIcon ? { width: config.branding.toggleButtonIcon.width || 32, height: config.branding.toggleButtonIcon.height || 32 } : undefined,
+    widgetPosition,
     inputValue,
     setInputValue,
     thinkingExpanded,
@@ -360,7 +402,7 @@ export const ChatProvider: React.FC<ChatContextProps & { children: ReactNode }> 
     addRagFile,
     removeRagFile,
     uploadError,
-    apiKey, // Add apiKey to the value object
+    apiKey: effectiveApiKey,
     shadowRootRef // Add shadowRootRef to the value object
     , externalHeaders
   };

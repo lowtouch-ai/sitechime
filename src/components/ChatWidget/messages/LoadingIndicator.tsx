@@ -10,7 +10,7 @@ interface LoadingIndicatorProps {
 export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ botName, botAvatarUrl, theme }) => (
   <div 
     className="chat-message message-assistant mr-auto"
-    style={{ backgroundColor: theme.surface, color: theme.text }}
+    style={{ backgroundColor: theme.background, color: theme.text }}
   >
     <div className="flex items-center mb-1">
       {botAvatarUrl ? (

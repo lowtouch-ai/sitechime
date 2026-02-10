@@ -135,12 +135,14 @@ interface MessageContentProps {
   role: 'user' | 'assistant';
   theme: ChatTheme;
   onImageClick: (url: string, title?: string) => void;
+  className?: string;
 }
 
 export const MessageContent: React.FC<MessageContentProps> = ({
   content,
   role,
-  onImageClick
+  onImageClick,
+  className = ''
 }) => {
   const { config } = useChatContext();
   
@@ -189,7 +191,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({
   if (role === 'user') {
     return (
       <div 
-        className="whitespace-pre-wrap text-sm text-right"
+        className={`whitespace-pre-wrap text-sm text-right ${className}`}
         data-testid="message-content"
       >
         {content}
@@ -262,7 +264,7 @@ export const MessageContent: React.FC<MessageContentProps> = ({
     <>
       <style>{markdownStyles}</style>
       <div 
-        className="markdown-content text-sm text-left"
+        className={`markdown-content text-sm text-left ${className}`}
         data-testid="message-content"
       >
         <ReactShowdown 

@@ -26,8 +26,10 @@ export const TermsAndConditions: React.FC = () => {
         <div 
           className="terms-content flex-1 overflow-y-auto mb-8 text-sm rounded-lg border"
           style={{ 
-            borderColor: theme.border,
-            backgroundColor: theme.surface,
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(5px)',
+            WebkitBackdropFilter: 'blur(5px)',
             color: theme.text
           }}
         >

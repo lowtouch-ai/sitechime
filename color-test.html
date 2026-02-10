@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Color Test - Primary Color #0EA5E9</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .color-swatch {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            background: #0ea5e9;
+            border-radius: 8px;
+            margin-right: 15px;
+            vertical-align: middle;
+            box-shadow: 0 2px 8px rgba(14, 165, 233, 0.4);
+        }
+
+        .color-info {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .color-info h2 {
+            color: #0ea5e9;
+            font-size: 24px;
+        }
+
+        .color-info p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #0ea5e9;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f8fafc;
+            border-left: 4px solid #0ea5e9;
+            border-radius: 4px;
+        }
+
+        .checklist li::before {
+            content: "✓ ";
+            color: #0ea5e9;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .color-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .example-card {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .example-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .example-card.primary {
+            background: #0ea5e9;
+            color: white;
+        }
+
+        .example-card.light {
+            background: #e0f2fe;
+            color: #075985;
+        }
+
+        .example-card.dark {
+            background: #0c4a6e;
+            color: white;
+        }
+
+        .test-button {
+            padding: 12px 24px;
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .test-button:hover {
+            background: #0284c7;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+        }
+
+        .instructions {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+
+        .instructions h4 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #78350f;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .widget-container {
+            position: relative;
+            min-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="color-swatch"></div>
+            <div class="color-info">
+                <h2>#0EA5E9</h2>
+                <p>Primary Theme Color (Sky Blue)</p>
+            </div>
+        </div>
+
+        <!-- Test Instructions -->
+        <div class="test-section">
+            <h3>🎯 Testing Instructions</h3>
+            <div class="instructions">
+                <h4>How to Verify the Primary Color:</h4>
+                <ol>
+                    <li>Click the chat widget toggle button (bottom-left corner)</li>
+                    <li>Open the chat window</li>
+                    <li>Check the header background color - should be #0EA5E9</li>
+                    <li>Send a test message</li>
+                    <li>Your message bubble should have the primary color background</li>
+                    <li>Hover over interactive elements to see color accents</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Color Usage Checklist -->
+        <div class="test-section">
+            <h3>✅ Where to Look for Primary Color (#0EA5E9)</h3>
+            <ul class="checklist">
+                <li><strong>Chat Header:</strong> Background color of the header bar with bot name</li>
+                <li><strong>User Messages:</strong> Your sent messages should have sky blue background</li>
+                <li><strong>Send Button:</strong> Active send button when text is entered</li>
+                <li><strong>Links:</strong> Hyperlinks in chat messages</li>
+                <li><strong>Loading States:</strong> Spinner and loading indicators</li>
+                <li><strong>Hover States:</strong> Interactive element highlights</li>
+                <li><strong>Icons:</strong> Primary action icons and indicators</li>
+            </ul>
+        </div>
+
+        <!-- Color Examples -->
+        <div class="test-section">
+            <h3>🎨 Color Variations in Use</h3>
+            <div class="color-examples">
+                <div class="example-card primary">
+                    <h4>Primary</h4>
+                    <p>#0EA5E9</p>
+                    <p>Main UI elements</p>
+                </div>
+                <div class="example-card light">
+                    <h4>Light Variant</h4>
+                    <p>#E0F2FE</p>
+                    <p>Hover states</p>
+                </div>
+                <div class="example-card dark">
+                    <h4>Dark Variant</h4>
+                    <p>#0C4A6E</p>
+                    <p>Active states</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Test Buttons -->
+        <div class="test-section">
+            <h3>🔘 Test Primary Color Buttons</h3>
+            <p style="margin-bottom: 15px; color: #666;">These buttons use the same primary color. Hover to see the effect:</p>
+            <button class="test-button" onclick="alert('Primary color button clicked!')">Primary Button</button>
+            <button class="test-button" onclick="window.open('http://localhost:5173/test-widget.html', '_blank')">Open Widget Test Page</button>
+        </div>
+
+        <!-- Widget Container -->
+        <div class="widget-container">
+            <div id="chat-widget"></div>
+        </div>
+    </div>
+
+    <!-- Widget Integration Script -->
+    <script type="module">
+        import { mountChatWidget } from '/src/components/ChatWidget/mount.tsx';
+
+        const DEFAULT_HEADERS = {
+            'X-LTAI-EXT-API-TOKEN': 'test-auth-token',
+            'X-LTAI-EXT-CLIENT-ID': 'test-tenant',
+            'X-LTAI-EXT-SESSION-CONTEXT': '{"session":"test-session"}'
+        };
+
+        const widgetConfig = {
+            configUrl: '/widget-config.json',
+            externalHeaders: DEFAULT_HEADERS
+        };
+
+        mountChatWidget('chat-widget', widgetConfig);
+
+        console.log('✅ Widget loaded with primary color: #0EA5E9');
+        console.log('📍 Look for this color in:');
+        console.log('   - Chat header background');
+        console.log('   - User message bubbles');
+        console.log('   - Send button and icons');
+        console.log('   - Interactive hover states');
+    </script>
+</body>
+</html>

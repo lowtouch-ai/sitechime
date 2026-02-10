@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Widget Testing - Positioning & Responsive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .test-button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .test-button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .test-button.active {
+            background: #764ba2;
+        }
+
+        .content-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .content-section p {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Responsive test frames */
+        .viewport-indicator {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 12px;
+            z-index: 9999;
+            font-family: monospace;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
+
+            .test-button {
+                width: 100%;
+            }
+
+            .content-section {
+                padding: 20px;
+            }
+        }
+
+        /* Add extra content for scroll testing */
+        .spacer {
+            height: 300px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-style: italic;
+        }
+
+        /* Test buttons behind widget */
+        .widget-overlap-test {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .overlap-button {
+            padding: 15px 25px;
+            background: #10b981;
+            color: white;
+            border: 2px solid #059669;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.4);
+            transition: all 0.3s ease;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .overlap-button:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.5);
+        }
+
+        .overlap-button:active {
+            transform: translateY(0);
+        }
+
+        .overlap-button.clicked {
+            background: #dc2626;
+            border-color: #b91c1c;
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .click-counter {
+            position: fixed;
+            bottom: 200px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9998;
+            font-family: monospace;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .click-counter strong {
+            color: #10b981;
+            font-size: 24px;
+        }
+
+        .test-status {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Viewport size indicator -->
+    <div class="viewport-indicator">
+        Screen: <span id="viewport-size"></span>
+    </div>
+
+    <div class="test-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🧪 Chat Widget Testing Environment</h1>
+            <p>Test the chat widget's positioning and responsive behavior across different screen sizes and scenarios.</p>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h2>📱 Quick Tests</h2>
+            <div class="button-group">
+                <button class="test-button" onclick="testMobile()">📱 Mobile View (375px)</button>
+                <button class="test-button" onclick="testTablet()">📱 Tablet View (768px)</button>
+                <button class="test-button" onclick="testDesktop()">🖥️ Desktop View (1200px)</button>
+                <button class="test-button" onclick="testFullScreen()">🖥️ Full Screen</button>
+            </div>
+
+            <h2>🎯 Widget Actions</h2>
+            <div class="button-group">
+                <button class="test-button" onclick="scrollToTop()">⬆️ Scroll to Top</button>
+                <button class="test-button" onclick="scrollToBottom()">⬇️ Scroll to Bottom</button>
+                <button class="test-button" onclick="scrollToMiddle()">↕️ Scroll to Middle</button>
+            </div>
+
+            <div class="info-box">
+                <strong>Testing Checklist:</strong>
+                ✅ Widget positioned on LEFT side (bottom-left corner)<br>
+                ✅ Widget opens/expands toward the LEFT<br>
+                ✅ Green test buttons are CLICKABLE when widget is closed<br>
+                ✅ Widget stays in correct position when scrolling<br>
+                ✅ Widget is accessible on mobile devices<br>
+                ✅ Widget button doesn't overlap with test buttons<br>
+                ✅ Widget window opens/closes smoothly<br>
+                ✅ Widget is responsive across all screen sizes
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-section">
+            <h2>Welcome to SiteChime Chat Widget</h2>
+            <p>
+                This is a comprehensive testing environment for the chat widget. The widget should maintain
+                proper positioning and responsive behavior regardless of where you are on the page or what
+                device size you're viewing on.
+            </p>
+            <p>
+                Try scrolling up and down, resizing your browser window, and opening/closing the chat widget
+                to test all scenarios. The widget should always remain accessible and properly positioned.
+            </p>
+
+            <div class="grid-layout">
+                <div class="card">
+                    <h3>📱 Mobile Testing</h3>
+                    <p>Test on devices below 768px width. Widget should be easily accessible with proper spacing.</p>
+                </div>
+                <div class="card">
+                    <h3>💻 Tablet Testing</h3>
+                    <p>Test between 768px and 1024px. Widget should adapt to medium screen sizes.</p>
+                </div>
+                <div class="card">
+                    <h3>🖥️ Desktop Testing</h3>
+                    <p>Test on screens 1024px and above. Widget should have optimal positioning for larger displays.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spacer for scroll testing -->
+        <div class="spacer">Scroll down to test widget positioning... ⬇️</div>
+
+        <div class="content-section">
+            <h2>Section 2: Middle Content</h2>
+            <p>
+                This section helps test the widget's behavior when you're in the middle of a page.
+                The chat button should remain fixed and accessible at all times.
+            </p>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt
+                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+                laboris nisi ut aliquip ex ea commodo consequat.
+            </p>
+        </div>
+
+        <div class="spacer">Keep scrolling... ⬇️</div>
+
+        <div class="content-section">
+            <h2>Section 3: Bottom Content</h2>
+            <p>
+                When you're at the bottom of the page, the widget should still be properly positioned
+                and not overlap with any footer content or other page elements.
+            </p>
+            <p>
+                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+                nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
+                deserunt mollit anim id est laborum.
+            </p>
+        </div>
+
+        <div class="spacer">You've reached the end! ✨</div>
+    </div>
+
+    <!-- Widget Overlap Test Buttons -->
+    <div class="click-counter">
+        <div>🎯 <strong>Widget Clickability Test</strong></div>
+        <div class="test-status">
+            Click the green buttons below when widget is closed.<br>
+            They should be clickable! ✅
+        </div>
+        <div style="margin-top: 10px;">
+            Button 1 clicks: <strong id="count1">0</strong><br>
+            Button 2 clicks: <strong id="count2">0</strong><br>
+            Button 3 clicks: <strong id="count3">0</strong>
+        </div>
+    </div>
+
+    <div class="widget-overlap-test">
+        <button class="overlap-button" id="test-btn-1" onclick="handleTestClick(1)">
+            🔵 Test Button 1
+        </button>
+        <button class="overlap-button" id="test-btn-2" onclick="handleTestClick(2)">
+            🟢 Test Button 2
+        </button>
+        <button class="overlap-button" id="test-btn-3" onclick="handleTestClick(3)">
+            🟡 Test Button 3
+        </button>
+    </div>
+
+    <!-- Chat Widget Container -->
+    <div id="chat-widget"></div>
+
+    <!-- Widget Integration Script -->
+    <script type="module">
+        // This will load the widget from your dev server
+        import { mountChatWidget } from '/src/components/ChatWidget/mount.tsx';
+
+        // Default headers for testing
+        const DEFAULT_HEADERS = {
+            'X-LTAI-EXT-API-TOKEN': 'test-auth-token',
+            'X-LTAI-EXT-CLIENT-ID': 'test-tenant',
+            'X-LTAI-EXT-SESSION-CONTEXT': '{"session":"test-session"}'
+        };
+
+        // Mount the widget
+        const widgetConfig = {
+            configUrl: '/widget-config.json',
+            externalHeaders: DEFAULT_HEADERS
+        };
+
+        mountChatWidget('chat-widget', widgetConfig);
+
+        // Update viewport size indicator
+        function updateViewportSize() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const indicator = document.getElementById('viewport-size');
+            if (indicator) {
+                indicator.textContent = `${width}px × ${height}px`;
+            }
+        }
+
+        updateViewportSize();
+        window.addEventListener('resize', updateViewportSize);
+    </script>
+
+    <!-- Testing Helper Functions -->
+    <script>
+        function testMobile() {
+            window.resizeTo(375, 667);
+            alert('For mobile testing, use browser DevTools (F12) → Device Toolbar (Ctrl+Shift+M) and select a mobile device.');
+        }
+
+        function testTablet() {
+            window.resizeTo(768, 1024);
+            alert('For tablet testing, use browser DevTools (F12) → Device Toolbar (Ctrl+Shift+M) and select a tablet device.');
+        }
+
+        function testDesktop() {
+            window.resizeTo(1200, 800);
+            alert('For desktop testing, resize your browser window to at least 1200px width.');
+        }
+
+        function testFullScreen() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                document.documentElement.requestFullscreen();
+            }
+        }
+
+        // Test button click handler
+        let clickCounts = { 1: 0, 2: 0, 3: 0 };
+
+        function handleTestClick(buttonNum) {
+            clickCounts[buttonNum]++;
+
+            // Update counter display
+            const counter = document.getElementById(`count${buttonNum}`);
+            if (counter) {
+                counter.textContent = clickCounts[buttonNum];
+            }
+
+            // Visual feedback
+            const button = document.getElementById(`test-btn-${buttonNum}`);
+            if (button) {
+                button.classList.add('clicked');
+                setTimeout(() => {
+                    button.classList.remove('clicked');
+                }, 500);
+            }
+
+            // Log to console
+            console.log(`✅ Test Button ${buttonNum} clicked! Total clicks: ${clickCounts[buttonNum]}`);
+
+            // Show success message
+            if (clickCounts[buttonNum] === 1) {
+                alert(`✅ Success! Button ${buttonNum} is clickable when widget is closed.`);
+            }
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function scrollToBottom() {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        function scrollToMiddle() {
+            window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'smooth' });
+        }
+
+        // Log widget events for debugging
+        window.addEventListener('chatWidgetReady', () => {
+            console.log('✅ Chat widget loaded successfully');
+        });
+
+        window.addEventListener('chatWidgetError', (e) => {
+            console.error('❌ Chat widget error:', e.detail);
+        });
+    </script>
+</body>
+</html>

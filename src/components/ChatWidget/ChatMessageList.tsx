@@ -27,7 +27,10 @@ export const ChatMessageList: React.FC = () => {
     !isLoading;
   
   return (
-    <div className="chat-messages flex-1 overflow-y-auto p-4 space-y-4">
+    <div 
+      className="chat-messages flex-1 overflow-y-auto p-4 space-y-4"
+      style={{ backgroundColor: `rgba(255, 255, 255, ${theme.glassmorphism.opacity * 0.8})` }}
+    >
       {messages.length === 0 && (
         <div className="chat-separator text-center text-sm text-gray-500 my-2">
           Start of conversation
