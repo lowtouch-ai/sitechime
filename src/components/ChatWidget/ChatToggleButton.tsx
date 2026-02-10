@@ -3,23 +3,25 @@ import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { useChatContext } from './ChatContext';
 
 export const ChatToggleButton: React.FC = () => {
-  const { setIsOpen, isOpen, setIsExpanded, isExpanded, theme, config } = useChatContext();
+  const { setIsOpen, isOpen, setIsExpanded, isExpanded, theme, config, toggleButtonDimensions } = useChatContext();
   
   const buttonBackground = config?.branding.toggleButton?.backgroundColor || theme.primary;
+  const iconColor = config?.branding.icons?.toggle || theme.secondary;
 
   const buttonStyle = {
     backgroundColor: buttonBackground,
-    color: theme.icons.toggle,
-    width: '60px',
-    height: '60px',
-    borderRadius: '50%',
+    color: iconColor,
+    width: config?.branding.toggleButton?.size ? `${config.branding.toggleButton.size}px` : '60px',
+    height: config?.branding.toggleButton?.size ? `${config.branding.toggleButton.size}px` : '60px',
+    borderRadius: config?.branding.toggleButton?.borderRadius || '50%',
     border: 'none',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
     padding: 0,
-    cursor: 'pointer'
+    cursor: 'pointer',
+    pointerEvents: 'auto' as const
   };
   
   // Determine which icon to use (toggleButtonIcon first, then logo, then default icon)
@@ -45,16 +47,24 @@ export const ChatToggleButton: React.FC = () => {
         <img 
           src={toggleIconUrl} 
           alt="Chat"
-          className="w-8 h-8 object-contain"
+          style={{ 
+            width: toggleButtonDimensions?.width ? `${toggleButtonDimensions.width}px` : '32px', 
+            height: toggleButtonDimensions?.height ? `${toggleButtonDimensions.height}px` : '32px' 
+          }}
+          className="object-contain"
         />
       ) : logoUrl ? (
         <img 
           src={logoUrl} 
           alt="Chat"
-          className="w-8 h-8 object-contain"
+          style={{ 
+            width: toggleButtonDimensions?.width ? `${toggleButtonDimensions.width}px` : '32px', 
+            height: toggleButtonDimensions?.height ? `${toggleButtonDimensions.height}px` : '32px' 
+          }}
+          className="object-contain"
         />
       ) : (
-        <ChatBubbleLeftRightIcon className="w-8 h-8" style={{ color: theme.icons.toggle }} />
+        <ChatBubbleLeftRightIcon className="w-8 h-8" style={{ color: iconColor }} />
       )}
     </button>
   );

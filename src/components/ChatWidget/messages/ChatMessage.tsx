@@ -36,6 +36,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   const [imageTitle, setImageTitle] = useState<string>('Image');
   const { isLoading } = useChatContext();
   
+  // Helper to convert decimal opacity (0-1) to hex alpha (00-FF)
+  const toHexAlpha = (opacity: number) => {
+    const alpha = Math.round(opacity * 255);
+    return alpha.toString(16).padStart(2, '0').toUpperCase();
+  };
+
   // Process message content to extract thinking tokens
   const processMessageContent = (content: string) => {
     if (content.includes('<think>') && !content.includes('</think>')) {
@@ -79,11 +85,17 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     <>
       <div
         className={`chat-message ${
-          role === 'user' ? 'message-user ml-auto' : 'message-assistant mr-auto'
-        }`}
+          role === 'user' ? 'message-user' : 'message-assistant'
+        } message-appear glass-effect`}
         style={{
-          backgroundColor: role === 'user' ? theme.primary : theme.surface,
+          backgroundColor: role === 'user' 
+            ? `${theme.primary}${toHexAlpha(theme.glassmorphism.messageOpacity)}` 
+            : `rgba(255, 255, 255, ${theme.glassmorphism.messageOpacity})`,
           color: role === 'user' ? theme.secondary : theme.text,
+          border: `1px solid ${role === 'user' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.3)'}`,
+          backdropFilter: `blur(${theme.glassmorphism.blur})`,
+          WebkitBackdropFilter: `blur(${theme.glassmorphism.blur})`,
+          borderRadius: theme.messageBorderRadius,
         }}
       >
         <MessageAuthor 
@@ -108,6 +120,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           role={role} 
           theme={theme}
           onImageClick={handleImageClick}
+          className={role === 'user' ? 'text-right' : 'text-left'}
         />
         
         {ragFiles && ragFiles.length > 0 && role === 'user' && (

@@ -113,7 +113,7 @@
 
         const derivedExternalHeaders = {};
         if (accessToken) {
-            derivedExternalHeaders['X-LTAI-EXT-APEXAIQ-API-TOKEN'] = accessToken;
+            derivedExternalHeaders['X-LTAI-EXT-API-TOKEN'] = accessToken;
         }
         if (clientId) {
             derivedExternalHeaders['X-LTAI-EXT-CLIENT-ID'] = clientId;
@@ -126,15 +126,7 @@
 
         const widgetConfig = {
             // apiKey: accessToken,
-            configUrl: 'data/widget-config.apexa.json',
-            position: 'bottom-right',
-            theme: {
-                primary: '#0b5fff',
-                secondary: '#ffffff',
-                text: '#000000',
-                surface: '#ffffff',
-                border: '#e5e7eb'
-            }
+            configUrl: '/data/widget-config.json'
         };
 
         const hasDerivedHeaders = Object.keys(derivedExternalHeaders).length > 0;

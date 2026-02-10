@@ -8,15 +8,19 @@ export interface WidgetConfig {
       };
     };
     dimensions: {
-      width: number;
-      height: number;
-      minHeight: number;
-      maxWidth: number;
+      width: number | string;
+      height: number | string;
+      minHeight: number | string;
+      maxWidth: number | string;
     };
+    zIndex?: number;
     behavior: {
       initialState: 'minimized' | 'expanded';
       autoExpand: boolean;
       allowFullscreen: boolean;
+      clearChat?: {
+        enabled: boolean;
+      };
     };
     terms: {
       enabled: boolean;
@@ -27,10 +31,12 @@ export interface WidgetConfig {
     };
   };
   branding: {
+    botName?: string;
+    headerSubtitle?: string;
     logo: {
       url: string;
-      height: number;
-      width: number;
+      width?: number;
+      height?: number;
     };
     toggleButtonIcon?: {
       url: string;
@@ -39,16 +45,23 @@ export interface WidgetConfig {
     };
     toggleButton?: {
       backgroundColor?: string;
+      size?: number;
+      borderRadius?: string;
     };
     theme: {
       primaryColor: string;
       secondaryColor: string;
       fontFamily: string;
       backgroundColor?: string;
-      surfaceColor?: string;
       borderColor?: string;
       textColor?: string;
       textSecondaryColor?: string;
+      glassmorphism?: {
+        opacity: number;
+        blur: string;
+        messageOpacity: number;
+      };
+      messageBorderRadius?: string;
     };
     icons?: {
       primary?: string;
@@ -67,18 +80,14 @@ export interface WidgetConfig {
     };
   };
   security: {
+    apiKey: string;
     authentication: {
-      tokenRefreshInterval?: number;
       maxRetries: number;
-    };
-    rateLimit?: {
-      requestsPerMinute: number;
-      maxConcurrentUsers: number;
     };
     api: {
       host: string;
-      version: string;
       timeout: number;
+      model?: string;
     };
   };
   features: {
@@ -88,13 +97,7 @@ export interface WidgetConfig {
       allowedTypes: string[];
     };
     logging?: {
-      level: 'debug' | 'info' | 'warn' | 'error';
-      retention: number;
       console?: boolean;
-    };
-    performance?: {
-      messageBuffer: number;
-      streamingBufferSize: number;
     };
   };
 }

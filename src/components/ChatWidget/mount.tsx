@@ -10,7 +10,7 @@ import widgetCss from './ChatWidget.css?raw';
 // import './ChatWidget.css';
 
 export interface ChatWidgetConfig {
-  apiKey: string;
+  apiKey?: string;
   theme?: Partial<ChatTheme>;
   position?: 'bottom-right' | 'bottom-left';
   configUrl: string;
@@ -42,45 +42,25 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
     reactWrapper.id = 'chat-widget-shadow-wrapper';
     shadowRoot.appendChild(reactWrapper);
     
-    // Create a link element for the main CSS
-    const linkElement = document.createElement('link');
-    linkElement.rel = 'stylesheet';
-    linkElement.href = 'https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css';
+    // Create a script element for Tailwind v3
+    const tailwindScript = document.createElement('script');
+    tailwindScript.src = 'https://cdn.tailwindcss.com';
     
     // Create a style element for custom styles
     const customStyles = document.createElement('style');
     
-    // Add the essential custom styles directly first as a baseline
-    customStyles.textContent = `
-      @keyframes slideIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      @keyframes bounce {
-        0%, 80%, 100% { transform: translateY(0); }
-        40% { transform: translateY(-6px); }
-      }
-      .chat-window-enter { animation: slideIn 0.3s ease-out forwards; }
-      .message-enter { animation: fadeIn 0.3s ease-out forwards; }
-      .chat-widget { position: fixed; z-index: 1000; bottom: 20px; display: flex; flex-direction: column; }
-      .chat-widget-right { right: 20px; }
-      .chat-widget-left { left: 20px; }
-      .chat-window { position: fixed; bottom: 80px; right: 20px; min-height: 500px; height: calc(90vh - 100px); width: 400px; display: flex; flex-direction: column; opacity: 0; transform: translateY(20px); transition: opacity 0.3s ease-out, transform 0.3s ease-out; }
-      .chat-window.visible { opacity: 1; transform: translateY(0); }
-      .chat-window.expanded { width: 100% !important; height: 100vh !important; bottom: 0 !important; right: 0 !important; border-radius: 0 !important; max-width: none !important; }
-      .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 1rem; }
-      .chat-message { max-width: 85%; padding: 0.75rem 1rem; border-radius: 1rem; position: relative; user-select: text; }
-      .message-user { align-self: flex-end; border-bottom-right-radius: 0.25rem; margin-left: auto; text-align: right; }
-      .message-assistant { align-self: flex-start; border-bottom-left-radius: 0.25rem; margin-right: auto; text-align: left; }
-      .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 0.5rem; background-color: #f9f9f9; border-radius: 8px; margin-top: 4px; }
-      .typing-indicator-dot { width: 5px; height: 5px; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; background-color: #3b82f6; }
-      .typing-indicator-dot:nth-child(1) { animation-delay: -0.32s; }
-      .typing-indicator-dot:nth-child(2) { animation-delay: -0.16s; }
-    `;
+    // Add the script and style elements to the shadow DOM
+    // Note: tailwind JIT script needs to be in the head or near the elements it styles
+    // In Shadow DOM, we might need a different approach for Tailwind v3
+    // For now, let's use the v3 standalone CLI output or stick to a stable v2 if script doesn't work well in Shadow DOM
+    
+    // Actually, Tailwind v3 script doesn't work inside Shadow DOM easily because it scans the document.
+    // Let's use a more modern v2 or a pre-compiled v3 if we had one. 
+    // Since we don't have a pre-compiled one, let's use v2.2.19 but ensure it's loaded correctly.
+    
+    const linkElement = document.createElement('link');
+    linkElement.rel = 'stylesheet';
+    linkElement.href = 'https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css';
     
     // Add the link and style elements to the shadow DOM
     shadowRoot.appendChild(linkElement);
@@ -141,36 +121,7 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
     
     // Add custom styles
     const customStylesElement = document.createElement('style');
-    customStylesElement.textContent = `
-      @keyframes slideIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      @keyframes bounce {
-        0%, 80%, 100% { transform: translateY(0); }
-        40% { transform: translateY(-6px); }
-      }
-      .chat-widget-no-shadow .chat-window-enter { animation: slideIn 0.3s ease-out forwards; }
-      .chat-widget-no-shadow .message-enter { animation: fadeIn 0.3s ease-out forwards; }
-      .chat-widget-no-shadow .chat-widget { position: fixed; z-index: 1000; bottom: 20px; display: flex; flex-direction: column; }
-      .chat-widget-no-shadow .chat-widget-right { right: 20px; }
-      .chat-widget-no-shadow .chat-widget-left { left: 20px; }
-      .chat-widget-no-shadow .chat-window { position: fixed; bottom: 80px; right: 20px; min-height: 500px; height: calc(90vh - 100px); width: 400px; display: flex; flex-direction: column; opacity: 0; transform: translateY(20px); transition: opacity 0.3s ease-out, transform 0.3s ease-out; }
-      .chat-widget-no-shadow .chat-window.visible { opacity: 1; transform: translateY(0); }
-      .chat-widget-no-shadow .chat-window.expanded { width: 100% !important; height: 100vh !important; bottom: 0 !important; right: 0 !important; border-radius: 0 !important; max-width: none !important; }
-      .chat-widget-no-shadow .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 1rem; }
-      .chat-widget-no-shadow .chat-message { max-width: 85%; padding: 0.75rem 1rem; border-radius: 1rem; position: relative; user-select: text; }
-      .chat-widget-no-shadow .message-user { align-self: flex-end; border-bottom-right-radius: 0.25rem; margin-left: auto; text-align: right; }
-      .chat-widget-no-shadow .message-assistant { align-self: flex-start; border-bottom-left-radius: 0.25rem; margin-right: auto; text-align: left; }
-      .chat-widget-no-shadow .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 0.5rem; background-color: #f9f9f9; border-radius: 8px; margin-top: 4px; }
-      .chat-widget-no-shadow .typing-indicator-dot { width: 5px; height: 5px; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; background-color: #3b82f6; }
-      .chat-widget-no-shadow .typing-indicator-dot:nth-child(1) { animation-delay: -0.32s; }
-      .chat-widget-no-shadow .typing-indicator-dot:nth-child(2) { animation-delay: -0.16s; }
-    `;
+    customStylesElement.textContent = widgetCss;
     document.head.appendChild(customStylesElement);
     
     // Add zoom styles

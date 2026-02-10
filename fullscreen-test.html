@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fullscreen Mode & Custom CSS Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .header p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #0ea5e9;
+            font-size: 22px;
+        }
+
+        .test-section h3 {
+            color: #0ea5e9;
+            margin: 20px 0 10px 0;
+            font-size: 18px;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 12px 12px 12px 40px;
+            margin-bottom: 8px;
+            background: #f8fafc;
+            border-left: 4px solid #0ea5e9;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .checklist li::before {
+            content: "☐";
+            position: absolute;
+            left: 12px;
+            font-size: 20px;
+            color: #0ea5e9;
+        }
+
+        .feature-box {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .feature-box h4 {
+            color: #0c4a6e;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .feature-box ul {
+            margin-left: 20px;
+            color: #0c4a6e;
+        }
+
+        .feature-box ul li {
+            margin-bottom: 6px;
+        }
+
+        .warning-box {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+
+        .warning-box strong {
+            color: #92400e;
+        }
+
+        .success-box {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+
+        .success-box strong {
+            color: #166534;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .toggle-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .toggle-switch label {
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #0ea5e9;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .keyboard-hint {
+            display: inline-block;
+            background: #1e293b;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 0 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🧪 Fullscreen Mode & Custom CSS Test</h1>
+            <p>Test the improved fullscreen behavior and custom CSS injection features of the chat widget.</p>
+        </div>
+
+        <!-- Fullscreen Mode Testing -->
+        <div class="test-section">
+            <h2>🖥️ Fullscreen Mode Testing</h2>
+
+            <div class="feature-box">
+                <h4>What is Fullscreen Mode?</h4>
+                <ul>
+                    <li>Expands the chat widget to cover the entire viewport (100% width & height)</li>
+                    <li>Positioned at coordinates (0, 0) - top-left corner of screen</li>
+                    <li>Provides an immersive chat experience on any screen size</li>
+                    <li>Can be toggled via the expand/collapse button in the header</li>
+                </ul>
+            </div>
+
+            <h3>✅ Test Checklist</h3>
+            <ul class="checklist">
+                <li>Open the chat widget by clicking the toggle button (bottom-left)</li>
+                <li>Look for the expand button (⤢ icon) in the chat header</li>
+                <li>Click the expand button - widget should fill entire screen</li>
+                <li>Widget should cover 100% width and 100% height</li>
+                <li>Widget should be positioned at top-left (0, 0)</li>
+                <li>Press <span class="keyboard-hint">ESC</span> key - widget should collapse back</li>
+                <li>Click the collapse button (⤡ icon) - widget should return to normal size</li>
+                <li>Normal widget dimensions should be restored</li>
+                <li>Widget should return to configured position (bottom-left)</li>
+            </ul>
+
+            <div class="success-box">
+                <strong>✓ Expected Behavior:</strong><br>
+                • Fullscreen: 100% width, 100% height, position (0, 0)<br>
+                • Normal: 350px width, 600px height, bottom-left with 20px offset<br>
+                • ESC key exits fullscreen mode<br>
+                • Smooth transition animation
+            </div>
+
+            <h3>⌨️ Keyboard Shortcuts</h3>
+            <div class="feature-box">
+                <ul>
+                    <li><span class="keyboard-hint">ESC</span> - Exit fullscreen mode</li>
+                    <li>Works from anywhere when widget is in fullscreen</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Custom CSS Testing -->
+        <div class="test-section">
+            <h2>🎨 Custom CSS Support Testing</h2>
+
+            <div class="feature-box">
+                <h4>What is Custom CSS Support?</h4>
+                <ul>
+                    <li>Allows loading external CSS file to customize widget appearance</li>
+                    <li>CSS is injected into the Shadow DOM (no conflicts with host page)</li>
+                    <li>Supports both absolute and relative paths</li>
+                    <li>Can override default widget styles</li>
+                </ul>
+            </div>
+
+            <div class="toggle-switch">
+                <label for="customCssToggle">Enable Custom CSS:</label>
+                <label class="switch">
+                    <input type="checkbox" id="customCssToggle" onchange="toggleCustomCSS()">
+                    <span class="slider"></span>
+                </label>
+                <span id="cssStatus" style="color: #94a3b8; font-size: 14px;">Disabled</span>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ Note:</strong> Toggle the switch above to enable/disable custom CSS.
+                You'll need to reload the widget to see changes.
+            </div>
+
+            <h3>Configuration</h3>
+            <div class="code-block">
+"branding": {
+  "customCSS": {
+    "enabled": true,
+    "path": "/custom.css"
+  }
+}
+            </div>
+
+            <h3>✅ Test Checklist</h3>
+            <ul class="checklist">
+                <li>Enable custom CSS using the toggle above</li>
+                <li>Reload the page to apply custom styles</li>
+                <li>Open the chat widget</li>
+                <li>Header should have a purple gradient background</li>
+                <li>User messages should have gradient (sky blue to darker blue)</li>
+                <li>Bot messages should have gray gradient</li>
+                <li>Toggle button should be pink/purple gradient</li>
+                <li>Scrollbar should have gradient color</li>
+                <li>Input field should have blue border</li>
+            </ul>
+
+            <div class="success-box">
+                <strong>✓ Expected Changes with Custom CSS:</strong><br>
+                • Header: Purple gradient (instead of white glassmorphism)<br>
+                • User messages: Blue gradient with shadow<br>
+                • Bot messages: Gray gradient with border<br>
+                • Toggle button: Pink/purple gradient, scaled up<br>
+                • Fullscreen animation: Enhanced expand effect
+            </div>
+
+            <h3>Custom CSS File Location</h3>
+            <div class="code-block">
+File: /public/custom.css
+Accessible at: http://localhost:5173/custom.css
+            </div>
+        </div>
+
+        <!-- Combined Testing -->
+        <div class="test-section">
+            <h2>🚀 Combined Feature Testing</h2>
+
+            <h3>Test Scenario 1: Fullscreen without Custom CSS</h3>
+            <div class="feature-box">
+                <ol>
+                    <li>Ensure custom CSS is disabled</li>
+                    <li>Open widget and enter fullscreen</li>
+                    <li>Verify default styling is applied</li>
+                    <li>Exit fullscreen with ESC key</li>
+                </ol>
+            </div>
+
+            <h3>Test Scenario 2: Fullscreen with Custom CSS</h3>
+            <div class="feature-box">
+                <ol>
+                    <li>Enable custom CSS and reload page</li>
+                    <li>Open widget - verify custom styles</li>
+                    <li>Enter fullscreen mode</li>
+                    <li>Custom styles should persist in fullscreen</li>
+                    <li>Animated expand effect should be visible</li>
+                    <li>Exit and verify styles remain</li>
+                </ol>
+            </div>
+
+            <h3>Test Scenario 3: Responsive Fullscreen</h3>
+            <div class="feature-box">
+                <ol>
+                    <li>Open browser DevTools (F12)</li>
+                    <li>Enable device toolbar (Ctrl+Shift+M)</li>
+                    <li>Test fullscreen on mobile size (375px)</li>
+                    <li>Test fullscreen on tablet size (768px)</li>
+                    <li>Test fullscreen on desktop size (1200px+)</li>
+                    <li>Verify proper scaling on all sizes</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Current Configuration Display -->
+        <div class="test-section">
+            <h2>⚙️ Current Configuration</h2>
+            <div id="configDisplay" class="code-block">
+                Loading configuration...
+            </div>
+        </div>
+    </div>
+
+    <!-- Widget Container -->
+    <div id="chat-widget"></div>
+
+    <!-- Widget Integration Script -->
+    <script type="module">
+        import { mountChatWidget } from '/src/components/ChatWidget/mount.tsx';
+
+        const DEFAULT_HEADERS = {
+            'X-LTAI-EXT-API-TOKEN': 'test-auth-token',
+            'X-LTAI-EXT-CLIENT-ID': 'test-tenant',
+            'X-LTAI-EXT-SESSION-CONTEXT': '{"session":"test-session"}'
+        };
+
+        const widgetConfig = {
+            configUrl: '/widget-config.json',
+            externalHeaders: DEFAULT_HEADERS
+        };
+
+        mountChatWidget('chat-widget', widgetConfig);
+
+        // Load and display current config
+        fetch('/widget-config.json')
+            .then(r => r.json())
+            .then(config => {
+                document.getElementById('configDisplay').textContent = JSON.stringify({
+                    fullscreen: {
+                        enabled: config.widget.behavior.allowFullscreen,
+                        dimensions: config.widget.dimensions,
+                        position: config.widget.position
+                    },
+                    customCSS: config.branding.customCSS
+                }, null, 2);
+            });
+
+        console.log('🧪 Fullscreen & Custom CSS Test Environment');
+        console.log('📍 Features to test:');
+        console.log('   1. Fullscreen mode (expand/collapse button)');
+        console.log('   2. ESC key to exit fullscreen');
+        console.log('   3. Custom CSS injection');
+        console.log('   4. Combined functionality');
+    </script>
+
+    <!-- Toggle Custom CSS Helper -->
+    <script>
+        function toggleCustomCSS() {
+            const toggle = document.getElementById('customCssToggle');
+            const status = document.getElementById('cssStatus');
+
+            if (toggle.checked) {
+                status.textContent = 'Enabled - Reload page to apply';
+                status.style.color = '#22c55e';
+                localStorage.setItem('customCSSEnabled', 'true');
+
+                // Update config
+                updateConfig(true);
+            } else {
+                status.textContent = 'Disabled';
+                status.style.color = '#94a3b8';
+                localStorage.setItem('customCSSEnabled', 'false');
+
+                // Update config
+                updateConfig(false);
+            }
+        }
+
+        function updateConfig(enabled) {
+            console.log(`Custom CSS ${enabled ? 'enabled' : 'disabled'}`);
+            console.log('Note: This is a test toggle. In production, update widget-config.json');
+
+            if (enabled) {
+                alert('✅ Custom CSS enabled!\n\nTo see the changes:\n1. Update widget-config.json:\n   "customCSS": { "enabled": true }\n2. Reload this page');
+            }
+        }
+
+        // Check saved preference
+        window.addEventListener('load', () => {
+            const enabled = localStorage.getItem('customCSSEnabled') === 'true';
+            const toggle = document.getElementById('customCssToggle');
+            const status = document.getElementById('cssStatus');
+
+            if (enabled) {
+                toggle.checked = true;
+                status.textContent = 'Enabled';
+                status.style.color = '#22c55e';
+            }
+        });
+    </script>
+</body>
+</html>

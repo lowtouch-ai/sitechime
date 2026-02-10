@@ -3,7 +3,6 @@ export interface ChatTheme {
   secondary: string;
   text: string;
   textSecondary: string;
-  surface: string;
   background: string;
   border: string;
   icons: {
@@ -13,10 +12,16 @@ export interface ChatTheme {
     destructive: string;
     toggle: string;
   };
+  glassmorphism: {
+    opacity: number;
+    blur: string;
+    messageOpacity: number;
+  };
+  messageBorderRadius: string;
 }
 
 export interface ChatWidgetProps {
-  apiKey: string;
+  apiKey?: string;
   configUrl: string;
   position?: 'bottom-right' | 'bottom-left';
   theme?: Partial<ChatTheme>;

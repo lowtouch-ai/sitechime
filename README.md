@@ -38,6 +38,7 @@ npm install openai-chat-widget
 
   // Optional: Provide external headers (e.g., from your IdP session)
   // These headers will be forwarded by the widget to your backend.
+  // The backend will forward any headers starting with 'X-LTAI-EXT-' to the upstream agent.
   const externalHeaders = {
     'X-LTAI-EXT-API-TOKEN': 'your-access-token',
     'X-LTAI-EXT-CLIENT-ID': 'your-tenant-or-client-id',
@@ -46,7 +47,9 @@ npm install openai-chat-widget
 
   // Minimal config; colors are optional. CSS is auto-injected into Shadow DOM.
   const config = {
-    apiKey: 'your-config-id-or-api-key',
+    // The apiKey is your configuration ID (UUID from the backend).
+    // It identifies which JsonData record to use for settings and authentication.
+    apiKey: 'your-config-uuid',
     configUrl: '/data/widget-config.json',
     position: 'bottom-right',
     theme: {
@@ -75,12 +78,15 @@ import { ChatWidget } from 'openai-chat-widget'
 export default function App() {
   return (
     <ChatWidget
-      apiKey="your-config-id-or-api-key"
+      apiKey="your-config-uuid"
       configUrl="/data/widget-config.json"
       position="bottom-right"
       theme={{ primary: '#0b5fff' }}
       welcomeMessage="👋 Hi there! How can I assist you today?"
-      externalHeaders={{ 'X-LTAI-EXT-CLIENT-ID': 'example' }}
+      externalHeaders={{ 
+        'X-LTAI-EXT-CLIENT-ID': 'example',
+        'X-LTAI-EXT-API-TOKEN': 'your-token'
+      }}
     />
   )
 }
@@ -212,56 +218,46 @@ Notes:
 - When no OIDC session is found, you can fall back to defaults (e.g., `DEFAULT_HEADERS`) or omit `externalHeaders`.
 - The widget also supports a page-global `window.__LTAI_EXT_HEADERS__` as a fallback.
 
-## Configuration
+## Authentication & Security
 
-You can customize the widget through a JSON file referenced by `configUrl`.
+### Header Definitions
+The widget supports propagating identity and context to the backend via specific headers. By convention, these are prefixed with `X-LTAI-EXT-`.
 
-Example (`public/widget-config.example.json`):
+- **`X-LTAI-EXT-AUTH-TOKEN`**: This is the primary credential passed to the backend. It is typically forwarded to the upstream AI provider (e.g., OpenAI, Anthropic) as a Bearer token.
+- **`X-LTAI-EXT-CLIENT-ID`**: Used for multi-tenant isolation. It helps the backend identify which client or tenant is initiating the request, allowing for separate rate limits and resource allocation.
+- **`X-LTAI-EXT-SESSION-CONTEXT`**: A JSON string containing session-specific metadata. This is used to provide context to the AI model about the current user (e.g., their name, email, or user ID) without needing to fetch it from a database on every request.
 
-```json
-{
-  "branding": {
-    "logo": {
-      "url": "https://example.com/logo.png",
-      "height": 40,
-      "width": 40
-    },
-    "toggleButtonIcon": {
-      "url": "https://example.com/chat-icon.png",
-      "height": 32,
-      "width": 32
-    },
-    "theme": {
-      "primaryColor": "#0b5fff",
-      "secondaryColor": "#ffffff",
-      "backgroundColor": "#ffffff",
-      "surfaceColor": "#ffffff",
-      "borderColor": "#e5e7eb",
-      "textColor": "#111827",
-      "textSecondaryColor": "#71717a"
-    },
-    "icons": {
-      "primary": "#2563eb",
-      "secondary": "#111827",
-      "neutral": "#4b5563",
-      "destructive": "#ef4444",
-      "toggle": "#ffffff"
-    },
-    "poweredBy": { "text": "Powered by lowtouch.ai", "visible": true }
-  },
-  "security": {
-    "api": {
-      "host": "https://your-backend.example.com",
-      "version": "v1",
-      "timeout": 300000
-    },
-    "authentication": { "maxRetries": 3 }
-  },
-  "features": {
-    "fileUpload": { "enabled": true, "maxSize": 5, "allowedTypes": ["image/*", "application/pdf"] }
-  }
-}
-```
+### `apiKey` vs `configId`
+There is often confusion between these two terms:
+- **`apiKey` (Public Identifier)**: In the context of the widget, the `apiKey` prop is actually a **Public Configuration ID** (represented as `JsonData.uuid` in the Django backend). It is **not** a secret. It tells the backend which specific chatbot configuration (prompts, models, tools) to use for this session.
+- **Authentication**: The backend itself can be configured to allow unauthenticated requests if the `configId` is marked as public. However, for production use, it is recommended to use the `X-LTAI-EXT-AUTH-TOKEN` to verify the user's identity before proxying requests to expensive AI models.
+
+### Is the backend authenticated?
+The SiteChime backend (`cloudcontrol_widget_backend`) uses the `X-Config-Key` (passed from the widget's `apiKey`) to look up the configuration. 
+- If the configuration is marked as **public** (`is_public=True` in the database), unauthenticated clients can send requests.
+- If you need to restrict access, you should ensure that the backend is only reachable through an authentication layer (like an OIDC proxy) or that the `OpenAIProxyView` is configured with appropriate DRF permission classes to validate the `X-LTAI-EXT-AUTH-TOKEN`.
+
+## Configuration Hierarchy
+
+The widget merges configuration from three sources (in order of increasing precedence):
+1. **Default values** baked into the component.
+2. **Props** passed to the `ChatWidget` or `mountChatWidget` (e.g., `theme`, `position`).
+3. **Hosted configuration** loaded from the `configUrl` (e.g., `widget-config.json`).
+
+This allows you to set a baseline theme in your code but override it dynamically via a hosted JSON file without redeploying your frontend.
+
+### Supported Config Keys (widget-config.json)
+
+| Key | Description |
+| --- | --- |
+| `widget.position.placement` | `'bottom-right'` or `'bottom-left'`. |
+| `widget.position.offset` | Vertical and horizontal offset in pixels. |
+| `widget.dimensions` | `width`, `height`, `minHeight`, and `maxWidth` for the chat window. |
+| `branding.customCSS` | If `enabled: true`, the widget will inject the CSS file at `path` into its Shadow DOM. |
+| `branding.logo` | URL and dimensions for the header logo. |
+| `branding.toggleButtonIcon` | URL and dimensions for the floating toggle button. |
+| `security.api.host` | The base URL of your SiteChime backend. |
+| `widget.terms` | Configuration for the Terms & Conditions flow. |
 
 Notes:
 - `toggleButtonIcon` is used for the chat button; `logo` is used for the bot avatar. If `toggleButtonIcon` is not provided, it falls back to `logo`.
