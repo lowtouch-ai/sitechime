@@ -31,8 +31,12 @@ export function mountChatWidget(containerId: string, config: ChatWidgetConfig) {
   shadowContainer.id = 'shadow-container';
   shadowRoot.appendChild(shadowContainer);
   
-  // We'll load the CSS in the Vite plugin
-  
+  // Inject CSS directly into shadow root
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = new URL('./openai-chat-widget.css', import.meta.url).href;
+  shadowRoot.appendChild(link);
+
   const root = createRoot(shadowContainer);
   root.render(<ChatWidget {...config} />);
   

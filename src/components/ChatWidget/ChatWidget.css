@@ -1,10 +1,5 @@
 /* Namespace all widget styles with a unique prefix */
-.sitechime-widget {
-  all: revert;
-}
-
 .sitechime-widget * {
-  all: revert;
   box-sizing: border-box;
 }
 
