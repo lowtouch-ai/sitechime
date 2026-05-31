@@ -21,10 +21,12 @@ export const ChatMessageList: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  // Determine if we should show the retry button
-  const showRetryButton = messages.length >= 2 && 
-    messages[messages.length - 1]?.role === 'assistant' && 
-    !isLoading;
+  // Determine if we should show the retry button (suppress for auth errors — retrying won't help)
+  const lastMessage = messages[messages.length - 1];
+  const showRetryButton = messages.length >= 2 &&
+    lastMessage?.role === 'assistant' &&
+    !isLoading &&
+    !(lastMessage as any).isAuthError;
   
   return (
     <div 
@@ -50,6 +52,7 @@ export const ChatMessageList: React.FC = () => {
           fileAttachment={msg.fileAttachment}
           ragFiles={msg.ragFiles}
           isLastMessage={index === messages.length - 1}
+          isAuthError={(msg as any).isAuthError}
         />
       ))}
 

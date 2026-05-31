@@ -136,7 +136,9 @@ export const sendChatMessage = async (
       Logger.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const httpErr = new Error(`HTTP error! status: ${response.status}`);
+        (httpErr as any).statusCode = response.status;
+        throw httpErr;
       }
 
       if (onChunk) {

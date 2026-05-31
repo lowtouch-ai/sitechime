@@ -10,6 +10,7 @@ interface Message {
   id?: string;
   fileAttachment?: FileAttachment;
   ragFiles?: RAGFile[];
+  isAuthError?: boolean;
 }
 
 interface UseChatProps {
@@ -155,14 +156,18 @@ export const useChat = ({
       const error = err as Error;
       if (error.name !== 'AbortError') {
         Logger.error('Error sending message:', error);
+        const isAuthError = (error as any).statusCode === 401;
         setMessages(prev => {
           // Replace the empty assistant message with an error message
           const newMessages = [...prev];
           const lastMessageIndex = newMessages.length - 1;
           const errorMessage: Message = {
             role: 'assistant',
-            content: 'I apologize, but I encountered an error processing your request. Please try again.',
-            id: generateId()
+            content: isAuthError
+              ? 'Your session has expired or is not authorized. Please refresh the page and try again.'
+              : 'I apologize, but I encountered an error processing your request. Please try again.',
+            id: generateId(),
+            isAuthError,
           };
           
           if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant' && 
