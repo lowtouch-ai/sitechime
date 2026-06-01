@@ -102,14 +102,19 @@ export const sendChatMessage = async (
       const { model } = await getCompletionsConfig();
       // console.log('Using model from config:', model);
 
+      // Read window.__LTAI_EXT_HEADERS__ at request time so console assignments
+      // after widget load are picked up without a page refresh.
+      const windowHeaders =
+        typeof window !== 'undefined'
+          ? (window as any).__LTAI_EXT_HEADERS__ as Record<string, string> | undefined
+          : undefined;
+
       const requestHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
         'X-Config-Key': `${apiKey}`,
-        // Attach any external headers passed in by the host page. These
-        // are expected to be already validated by the host and are used
-        // for context propagation (e.g. X-LTAI-EXT-*).
         ...(_externalHeaders || {}),
+        ...(windowHeaders || {}),
       };
 
       // Dev-friendly debug: log header NAMES being sent (do NOT print sensitive values)
