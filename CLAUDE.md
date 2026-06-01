@@ -457,3 +457,39 @@ The frontend's `apiKey` prop maps to backend's `JsonData.uuid` field, not an act
 3. Use `Logger.log()` throughout codebase (respects logging config)
 4. Test in isolated environment: open `/test-widget.html`
 5. Check Network tab for failed requests or incorrect MIME types
+
+## Reverse Proxy Authentication — Frontend Handling
+
+The widget handles `401 Unauthorized` responses from the backend proxy with a dedicated user-facing error flow.
+
+### How the token reaches the backend
+
+The host application sets `window.__LTAI_EXT_HEADERS__` with the OIDC access token before the widget sends any message:
+
+```js
+window.__LTAI_EXT_HEADERS__ = { 'X-LTAI-EXT-API-TOKEN': '<access_token>' }
+```
+
+`chatService.ts` reads this global **at request time** (inside `sendChatMessage`) so that tokens set after the widget loads are picked up immediately without a page refresh. `_externalHeaders` (from props via `ChatContext`) takes precedence; `window.__LTAI_EXT_HEADERS__` is the fallback.
+
+### 401 error UX
+
+| Layer | File | What it does |
+|---|---|---|
+| `chatService.ts` | `src/services/chatService.ts` | Attaches `statusCode` to thrown errors so callers can distinguish 401 from other failures |
+| `useChat.ts` | `src/hooks/useChat.ts` | Shows "Your session has expired..." message for 401; sets `isAuthError: true` on the message |
+| `ChatMessageList.tsx` | `src/components/ChatWidget/ChatMessageList.tsx` | Hides the Retry button for auth error messages (retrying without a fresh token is pointless) |
+| `ChatMessage.tsx` | `src/components/ChatWidget/messages/ChatMessage.tsx` | Renders auth error messages with an amber border to visually distinguish them |
+
+### Testing in the browser
+
+```js
+// Set a valid OIDC access token from the host application's session storage
+window.__LTAI_EXT_HEADERS__ = { 'X-LTAI-EXT-API-TOKEN': 'eyJ...' }
+
+// Verify the token is complete before sending (should show Length: 1000+, Dots: 2)
+var h = window.__LTAI_EXT_HEADERS__['X-LTAI-EXT-API-TOKEN']
+console.log('Length:', h.length, '| Dots:', (h.match(/\./g)||[]).length)
+```
+
+Ensure the token's signing algorithm matches what the backend JWKS supports. Tokens from different identity providers or applications may use different algorithms and will fail signature verification.
