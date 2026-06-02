@@ -102,14 +102,25 @@ export const sendChatMessage = async (
       const { model } = await getCompletionsConfig();
       // console.log('Using model from config:', model);
 
+      // Read window.__LTAI_EXT_HEADERS__ at request time so console assignments
+      // after widget load are picked up without a page refresh.
+      const rawWindowHeaders = typeof window !== 'undefined'
+        ? (window as any).__LTAI_EXT_HEADERS__
+        : undefined;
+      const windowHeaders: Record<string, string> | undefined =
+        rawWindowHeaders && typeof rawWindowHeaders === 'object' && !Array.isArray(rawWindowHeaders)
+          ? rawWindowHeaders as Record<string, string>
+          : undefined;
+      if (rawWindowHeaders !== undefined && windowHeaders === undefined) {
+        Logger.warn('window.__LTAI_EXT_HEADERS__ is set but is not a plain object — ignoring it');
+      }
+
       const requestHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
         'X-Config-Key': `${apiKey}`,
-        // Attach any external headers passed in by the host page. These
-        // are expected to be already validated by the host and are used
-        // for context propagation (e.g. X-LTAI-EXT-*).
         ...(_externalHeaders || {}),
+        ...(windowHeaders || {}),
       };
 
       // Dev-friendly debug: log header NAMES being sent (do NOT print sensitive values)
@@ -136,7 +147,9 @@ export const sendChatMessage = async (
       Logger.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const httpErr = new Error(`HTTP error! status: ${response.status}`);
+        (httpErr as any).statusCode = response.status;
+        throw httpErr;
       }
 
       if (onChunk) {

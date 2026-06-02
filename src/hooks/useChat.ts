@@ -10,6 +10,7 @@ interface Message {
   id?: string;
   fileAttachment?: FileAttachment;
   ragFiles?: RAGFile[];
+  isAuthError?: boolean;
 }
 
 interface UseChatProps {
@@ -57,9 +58,39 @@ export const useChat = ({
   //   }
   // }, [welcomeMessage]);
 
+  // Decode JWT exp claim without verifying signature to detect expiry before the round-trip.
+  const _isJwtExpired = (token: string): boolean => {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return typeof payload.exp === 'number' && payload.exp * 1000 < Date.now();
+    } catch {
+      return false;
+    }
+  };
+
   const sendMessage = useCallback(async (content: string, fileAttachment?: FileAttachment, ragFiles?: RAGFile[]) => {
     Logger.log('sendMessage called with content:', content);
     Logger.log('RAG files:', ragFiles);
+
+    // Proactively detect an expired token before sending — avoids a full round-trip
+    // that would just return 401. We only decode the exp claim (no signature check).
+    const windowHeaders = typeof window !== 'undefined'
+      ? (window as any).__LTAI_EXT_HEADERS__ as Record<string, string> | undefined
+      : undefined;
+    const apiToken = windowHeaders?.['X-LTAI-EXT-API-TOKEN'];
+    if (apiToken && _isJwtExpired(apiToken)) {
+      setMessages(prev => [
+        ...prev,
+        { role: 'user', content, id: generateId(), fileAttachment, ragFiles },
+        {
+          role: 'assistant',
+          content: 'Your session has expired. Please log out and log back in, then try again.',
+          id: generateId(),
+          isAuthError: true,
+        },
+      ]);
+      return;
+    }
     
     const userMessage: Message = { 
       role: 'user', 
@@ -155,14 +186,18 @@ export const useChat = ({
       const error = err as Error;
       if (error.name !== 'AbortError') {
         Logger.error('Error sending message:', error);
+        const isAuthError = (error as any).statusCode === 401;
         setMessages(prev => {
           // Replace the empty assistant message with an error message
           const newMessages = [...prev];
           const lastMessageIndex = newMessages.length - 1;
           const errorMessage: Message = {
             role: 'assistant',
-            content: 'I apologize, but I encountered an error processing your request. Please try again.',
-            id: generateId()
+            content: isAuthError
+              ? 'Your session is not authorized. Please log out and log back in, then try again.'
+              : 'I apologize, but I encountered an error processing your request. Please try again.',
+            id: generateId(),
+            isAuthError,
           };
           
           if (lastMessageIndex >= 0 && newMessages[lastMessageIndex].role === 'assistant' && 
