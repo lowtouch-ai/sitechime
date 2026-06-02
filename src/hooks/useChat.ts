@@ -164,7 +164,7 @@ export const useChat = ({
           const errorMessage: Message = {
             role: 'assistant',
             content: isAuthError
-              ? 'Your session has expired or is not authorized. Please refresh the page and try again.'
+              ? 'Your session is not authorized. Please log out and log back in, then try again.'
               : 'I apologize, but I encountered an error processing your request. Please try again.',
             id: generateId(),
             isAuthError,

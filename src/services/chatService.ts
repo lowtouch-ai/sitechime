@@ -104,10 +104,16 @@ export const sendChatMessage = async (
 
       // Read window.__LTAI_EXT_HEADERS__ at request time so console assignments
       // after widget load are picked up without a page refresh.
-      const windowHeaders =
-        typeof window !== 'undefined'
-          ? (window as any).__LTAI_EXT_HEADERS__ as Record<string, string> | undefined
+      const rawWindowHeaders = typeof window !== 'undefined'
+        ? (window as any).__LTAI_EXT_HEADERS__
+        : undefined;
+      const windowHeaders: Record<string, string> | undefined =
+        rawWindowHeaders && typeof rawWindowHeaders === 'object' && !Array.isArray(rawWindowHeaders)
+          ? rawWindowHeaders as Record<string, string>
           : undefined;
+      if (rawWindowHeaders !== undefined && windowHeaders === undefined) {
+        Logger.warn('window.__LTAI_EXT_HEADERS__ is not a plain object — ignoring it');
+      }
 
       const requestHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
