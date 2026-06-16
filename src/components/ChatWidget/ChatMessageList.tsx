@@ -26,7 +26,7 @@ export const ChatMessageList: React.FC = () => {
   const showRetryButton = messages.length >= 2 &&
     lastMessage?.role === 'assistant' &&
     !isLoading &&
-    !(lastMessage as any).isAuthError;
+    !lastMessage.isAuthError;
   
   return (
     <div 
@@ -52,7 +52,7 @@ export const ChatMessageList: React.FC = () => {
           fileAttachment={msg.fileAttachment}
           ragFiles={msg.ragFiles}
           isLastMessage={index === messages.length - 1}
-          isAuthError={(msg as any).isAuthError}
+          isAuthError={msg.isAuthError}
         />
       ))}
 

@@ -1,7 +1,10 @@
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
+  id?: string;
   fileAttachment?: FileAttachment;
+  ragFiles?: RAGFile[];
+  isAuthError?: boolean;
 }
 
 export interface FileAttachment {

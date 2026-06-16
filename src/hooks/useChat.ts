@@ -1,17 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { sendChatMessage } from '../services/chatService';
-import { FileAttachment, RAGFile } from '../types/chat';
+import { Message, FileAttachment, RAGFile } from '../types/chat';
 import { Logger } from '../utils/logger';
-
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-  // Add an id to force re-renders when content changes
-  id?: string;
-  fileAttachment?: FileAttachment;
-  ragFiles?: RAGFile[];
-  isAuthError?: boolean;
-}
 
 interface UseChatProps {
   apiKey: string;

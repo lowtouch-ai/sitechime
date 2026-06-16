@@ -4,20 +4,11 @@ import { fetchWidgetConfig } from '../../services/configService';
 import { WidgetConfig } from '../../types/widgetConfig';
 import { Logger } from '../../utils/logger';
 import { joinUrl } from '../../utils/url';
-import { FileAttachment, RAGFile } from '../../types/chat';
+import { Message, FileAttachment, RAGFile } from '../../types/chat';
 import type { ChatTheme } from './types';
 // Import the new setConfigUrl functions
 import { setConfigUrl as setRagConfigUrl } from '../../services/ragService';
 import { setConfigUrl as setChatConfigUrl, setExternalHeaders } from '../../services/chatService';
-
-// Updated Message interface matching useChat.ts
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-  id?: string;
-  fileAttachment?: FileAttachment;
-  ragFiles?: RAGFile[]; // Add ragFiles property to fix the error
-}
 
 interface ChatContextProps {
   apiKey?: string;
