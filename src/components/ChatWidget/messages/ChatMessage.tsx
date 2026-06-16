@@ -19,6 +19,7 @@ interface ChatMessageProps {
   fileAttachment?: FileAttachment;
   ragFiles?: RAGFile[];
   isLastMessage?: boolean;
+  isAuthError?: boolean;
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({
@@ -30,7 +31,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   thinkingExpanded,
   onToggleThinking,
   ragFiles,
-  isLastMessage = false
+  isLastMessage = false,
+  isAuthError = false,
 }) => {
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const [imageTitle, setImageTitle] = useState<string>('Image');
@@ -88,11 +90,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           role === 'user' ? 'message-user' : 'message-assistant'
         } message-appear glass-effect`}
         style={{
-          backgroundColor: role === 'user' 
-            ? `${theme.primary}${toHexAlpha(theme.glassmorphism.messageOpacity)}` 
+          backgroundColor: role === 'user'
+            ? `${theme.primary}${toHexAlpha(theme.glassmorphism.messageOpacity)}`
             : `rgba(255, 255, 255, ${theme.glassmorphism.messageOpacity})`,
           color: role === 'user' ? theme.secondary : theme.text,
-          border: `1px solid ${role === 'user' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.3)'}`,
+          border: isAuthError
+            ? '1px solid rgba(245, 158, 11, 0.6)'
+            : `1px solid ${role === 'user' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.3)'}`,
           backdropFilter: `blur(${theme.glassmorphism.blur})`,
           WebkitBackdropFilter: `blur(${theme.glassmorphism.blur})`,
           borderRadius: theme.messageBorderRadius,

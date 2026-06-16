@@ -112,7 +112,7 @@ export const sendChatMessage = async (
           ? rawWindowHeaders as Record<string, string>
           : undefined;
       if (rawWindowHeaders !== undefined && windowHeaders === undefined) {
-        Logger.warn('window.__LTAI_EXT_HEADERS__ is set but is not a plain object — ignoring it');
+        Logger.warn('window.__LTAI_EXT_HEADERS__ is not a plain object — ignoring it');
       }
 
       const requestHeaders: Record<string, string> = {
